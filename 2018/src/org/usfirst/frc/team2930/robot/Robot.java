@@ -10,6 +10,7 @@ package org.usfirst.frc.team2930.robot;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -90,6 +91,33 @@ public class Robot extends IterativeRobot {
 		System.out.println("Auto selected: " + m_autoSelected);
 		Gyro.reset();
 		encoderReset();
+		String gameData;
+		gameData = DriverStation.getInstance().getGameSpecificMessage();
+		//Switch auto
+		/*if (m_autoSelected.equals("Left Side")) {
+			if (gameData.charAt(0) == 'L') {
+				//switch is set to go forward
+			}
+			else {
+				//switch is set to cross line
+			}
+		}
+		else if (m_autoSelected.equals("Center")) {
+			if (gameData.charAt(0) == 'L') {
+				//switch is set to peel left
+			}
+			else {
+				//switch is set to peel right
+			}
+		}
+		else if (m_autoSelected.equals("Right Side")) {
+			if (gameData.charAt(0) == 'L') {
+				//switch is set to cross line
+			}
+			else {
+				//switch is set to go forward
+			}
+		}*/
 	}
 
 	/**
