@@ -65,8 +65,8 @@ public class Robot extends IterativeRobot {
 	public void robotPeriodic() {
 		SmartDashboard.putNumber("Gyro Angle ", Gyro.getYaw());
 		SmartDashboard.putNumber("Rate of Turning ", Gyro.getRate());
-		SmartDashboard.putNumber("Distance ", average(RightEncoder.getDistance(), 0/*LeftEncoder.getDistance()*/));
-		SmartDashboard.putNumber("Speed ", average(RightEncoder.getRate(), 0/*LeftEncoder.getRate()*/));
+		SmartDashboard.putNumber("Distance ", /*average(*/RightEncoder.getDistance()/*, LeftEncoder.getDistance())*/);
+		SmartDashboard.putNumber("Speed ", /*average(*/RightEncoder.getRate()/*, LeftEncoder.getRate())*/);
 	}
 
 	/**
