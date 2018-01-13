@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.XboxController;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.Encoder;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -32,6 +33,7 @@ public class Robot extends IterativeRobot {
 	DifferentialDrive JohnbotsDriveTrainOfPain;
 	XboxController DriveController;
 	AHRS Gyro;
+	Encoder RightEncoder;
 	
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -45,6 +47,16 @@ public class Robot extends IterativeRobot {
 		JohnbotsDriveTrainOfPain = new DifferentialDrive(new Spark(0), new Spark(1));
 		DriveController = new XboxController(0);
 		Gyro = new AHRS(SerialPort.Port.kMXP);
+		RightEncoder = new Encoder(0, 1);
+		//sRightEncoder.setDistancePerPulse(distancePerPulse);
+	}
+	
+	@Override
+	public void robotPeriodic() {
+		SmartDashboard.putNumber("Gyro Angle ", Gyro.getYaw());
+		SmartDashboard.putNumber("Rate of Turning ", Gyro.getRate());
+		SmartDashboard.putNumber("Distance ", RightEncoder.getDistance());
+		SmartDashboard.putNumber("Speed ", RightEncoder.getRate());
 	}
 
 	/**
