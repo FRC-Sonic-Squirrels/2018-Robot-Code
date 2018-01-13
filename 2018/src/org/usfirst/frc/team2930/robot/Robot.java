@@ -31,9 +31,16 @@ public class Robot extends IterativeRobot {
 	String m_autoSelected;
 	SendableChooser<String> m_chooser = new SendableChooser<>();
 	DifferentialDrive JohnbotsDriveTrainOfPain;
-	XboxController DriveController;
+	XboxController DriveController, OperateController;
 	AHRS Gyro;
-	Encoder RightEncoder;
+	Encoder RightEncoder/*, LeftEncoder*/;
+	public void encoderReset() {
+		RightEncoder.reset();
+		//LeftEncoder.reset();
+	}
+	public double average(double x, double y) {
+		return (x + y) / 2;
+	}
 	
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -46,17 +53,20 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putData("Auto choices", m_chooser);
 		JohnbotsDriveTrainOfPain = new DifferentialDrive(new Spark(0), new Spark(1));
 		DriveController = new XboxController(0);
+		OperateController = new XboxController(1);
 		Gyro = new AHRS(SerialPort.Port.kMXP);
 		RightEncoder = new Encoder(0, 1);
-		//sRightEncoder.setDistancePerPulse(distancePerPulse);
+		//LeftEncoder = new Encoder(2, 3);
+		//RightEncoder.setDistancePerPulse(distancePerPulse);
+		//LeftEncoder.setDistancePerPulse(distancePerPulse);
 	}
 	
 	@Override
 	public void robotPeriodic() {
 		SmartDashboard.putNumber("Gyro Angle ", Gyro.getYaw());
 		SmartDashboard.putNumber("Rate of Turning ", Gyro.getRate());
-		SmartDashboard.putNumber("Distance ", RightEncoder.getDistance());
-		SmartDashboard.putNumber("Speed ", RightEncoder.getRate());
+		SmartDashboard.putNumber("Distance ", average(RightEncoder.getDistance(), 0/*LeftEncoder.getDistance()*/));
+		SmartDashboard.putNumber("Speed ", average(RightEncoder.getRate(), 0/*LeftEncoder.getRate()*/));
 	}
 
 	/**
@@ -73,9 +83,10 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void autonomousInit() {
 		m_autoSelected = m_chooser.getSelected();
-		// autoSelected = SmartDashboard.getString("Auto Selector",
-		// defaultAuto);
+		// autoSelected = SmartDashboard.getString("Auto Selector", defaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);
+		Gyro.reset();
+		encoderReset();
 	}
 
 	/**
@@ -89,7 +100,6 @@ public class Robot extends IterativeRobot {
 				break;
 			case kDefaultAuto:
 			default:
-				// Put default auto code here
 				break;
 		}
 	}
