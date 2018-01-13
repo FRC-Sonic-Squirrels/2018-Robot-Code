@@ -34,6 +34,7 @@ public class Robot extends IterativeRobot {
 	XboxController DriveController, OperateController;
 	AHRS Gyro;
 	Encoder RightEncoder/*, LeftEncoder*/;
+	Spark LeftGrabber, RightGrabber;
 	public void encoderReset() {
 		RightEncoder.reset();
 		//LeftEncoder.reset();
@@ -57,6 +58,8 @@ public class Robot extends IterativeRobot {
 		Gyro = new AHRS(SerialPort.Port.kMXP);
 		RightEncoder = new Encoder(0, 1);
 		//LeftEncoder = new Encoder(2, 3);
+		LeftGrabber = new Spark(4);
+		RightGrabber = new Spark(5);
 		//RightEncoder.setDistancePerPulse(distancePerPulse);
 		//LeftEncoder.setDistancePerPulse(distancePerPulse);
 	}
@@ -110,6 +113,8 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 		JohnbotsDriveTrainOfPain.arcadeDrive(DriveController.getY(GenericHID.Hand.kLeft), DriveController.getX(GenericHID.Hand.kRight));
+		RightGrabber.set(OperateController.getY(GenericHID.Hand.kLeft));
+		LeftGrabber.set(-OperateController.getY(GenericHID.Hand.kLeft));
 	}
 
 	/**
