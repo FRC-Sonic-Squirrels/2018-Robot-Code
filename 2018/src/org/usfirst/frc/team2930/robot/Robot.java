@@ -18,6 +18,8 @@ import edu.wpi.first.wpilibj.XboxController;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.PIDSourceType;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -36,6 +38,9 @@ public class Robot extends IterativeRobot {
 	AHRS Gyro;
 	Encoder RightEncoder/*, LeftEncoder*/;
 	Spark LeftGrabber, RightGrabber;
+	PIDController PIDDrive, PIDRotate;
+	SimplePIDOutput PIDDriveOutput, PIDRotateOutput;
+	EncoderAveragePIDSource EncoderAverage;
 	public void encoderReset() {
 		RightEncoder.reset();
 		//LeftEncoder.reset();
@@ -57,12 +62,19 @@ public class Robot extends IterativeRobot {
 		DriveController = new XboxController(0);
 		OperateController = new XboxController(1);
 		Gyro = new AHRS(SerialPort.Port.kMXP);
-		RightEncoder = new Encoder(0, 1);
+		RightEncoder = new Encoder(9, 8);
 		//LeftEncoder = new Encoder(2, 3);
 		LeftGrabber = new Spark(4);
 		RightGrabber = new Spark(5);
-		//RightEncoder.setDistancePerPulse(distancePerPulse);
-		//LeftEncoder.setDistancePerPulse(distancePerPulse);
+		RightEncoder.setDistancePerPulse(0.0043970539738375);
+		//LeftEncoder.setDistancePerPulse(0.0043970539738375);
+		EncoderAverage = new EncoderAveragePIDSource(RightEncoder/*LeftEncoder*/, RightEncoder);
+		PIDDriveOutput = new SimplePIDOutput(0);
+		PIDRotateOutput = new SimplePIDOutput(0);
+		RightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
+		//LeftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
+		PIDDrive = new PIDController(0, 0, 0, EncoderAverage, PIDDriveOutput);
+		PIDRotate = new PIDController(0, 0, 0, Gyro, PIDRotateOutput);
 	}
 	
 	@Override
@@ -87,37 +99,12 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void autonomousInit() {
 		m_autoSelected = m_chooser.getSelected();
-		// autoSelected = SmartDashboard.getString("Auto Selector", defaultAuto);
+		//autoSelected = SmartDashboard.getString("Auto Selector", defaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);
 		Gyro.reset();
 		encoderReset();
 		String gameData;
 		gameData = DriverStation.getInstance().getGameSpecificMessage();
-		//Switch auto
-		/*if (m_autoSelected.equals("Left Side")) {
-			if (gameData.charAt(0) == 'L') {
-				//switch is set to go forward
-			}
-			else {
-				//switch is set to cross line
-			}
-		}
-		else if (m_autoSelected.equals("Center")) {
-			if (gameData.charAt(0) == 'L') {
-				//switch is set to peel left
-			}
-			else {
-				//switch is set to peel right
-			}
-		}
-		else if (m_autoSelected.equals("Right Side")) {
-			if (gameData.charAt(0) == 'L') {
-				//switch is set to cross line
-			}
-			else {
-				//switch is set to go forward
-			}
-		}*/
 	}
 
 	/**

@@ -14,6 +14,16 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team2930.robot.commands.ExampleCommand;
 import org.usfirst.frc.team2930.robot.subsystems.ExampleSubsystem;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.Spark;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.XboxController;
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.PIDSourceType;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -29,6 +39,21 @@ public class Robot extends TimedRobot {
 
 	Command m_autonomousCommand;
 	SendableChooser<Command> m_chooser = new SendableChooser<>();
+	DifferentialDrive JohnbotsDriveTrainOfPain;
+	XboxController DriveController, OperateController;
+	AHRS Gyro;
+	Encoder RightEncoder/*, LeftEncoder*/;
+	Spark LeftGrabber, RightGrabber;
+	PIDController PIDDrive, PIDRotate;
+	SimplePIDOutput PIDDriveOutput, PIDRotateOutput;
+	EncoderAveragePIDSource EncoderAverage;
+	public void encoderReset() {
+		RightEncoder.reset();
+		//LeftEncoder.reset();
+	}
+	public double average(double x, double y) {
+		return (x + y) / 2;
+	}
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -40,6 +65,31 @@ public class Robot extends TimedRobot {
 		m_chooser.addDefault("Default Auto", new ExampleCommand());
 		// chooser.addObject("My Auto", new MyAutoCommand());
 		SmartDashboard.putData("Auto mode", m_chooser);
+		JohnbotsDriveTrainOfPain = new DifferentialDrive(new Spark(0), new Spark(1));
+		DriveController = new XboxController(0);
+		OperateController = new XboxController(1);
+		Gyro = new AHRS(SerialPort.Port.kMXP);
+		RightEncoder = new Encoder(9, 8);
+		//LeftEncoder = new Encoder(2, 3);
+		LeftGrabber = new Spark(4);
+		RightGrabber = new Spark(5);
+		RightEncoder.setDistancePerPulse(0.0043970539738375);
+		//LeftEncoder.setDistancePerPulse(0.0043970539738375);
+		EncoderAverage = new EncoderAveragePIDSource(RightEncoder/*LeftEncoder*/, RightEncoder);
+		PIDDriveOutput = new SimplePIDOutput(0);
+		PIDRotateOutput = new SimplePIDOutput(0);
+		RightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
+		//LeftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
+		PIDDrive = new PIDController(0, 0, 0, EncoderAverage, PIDDriveOutput);
+		PIDRotate = new PIDController(0, 0, 0, Gyro, PIDRotateOutput);
+	}
+	
+	@Override
+	public void robotPeriodic() {
+		SmartDashboard.putNumber("Gyro Angle ", Gyro.getYaw());
+		SmartDashboard.putNumber("Rate of Turning ", Gyro.getRate());
+		SmartDashboard.putNumber("Distance ", /*average(*/RightEncoder.getDistance()/*, LeftEncoder.getDistance())*/);
+		SmartDashboard.putNumber("Speed ", /*average(*/RightEncoder.getRate()/*, LeftEncoder.getRate())*/);
 	}
 
 	/**
@@ -83,6 +133,10 @@ public class Robot extends TimedRobot {
 		if (m_autonomousCommand != null) {
 			m_autonomousCommand.start();
 		}
+		Gyro.reset();
+		encoderReset();
+		String gameData;
+		gameData = DriverStation.getInstance().getGameSpecificMessage();
 	}
 
 	/**
@@ -110,6 +164,9 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopPeriodic() {
 		Scheduler.getInstance().run();
+		JohnbotsDriveTrainOfPain.arcadeDrive(DriveController.getY(GenericHID.Hand.kLeft), DriveController.getX(GenericHID.Hand.kRight));
+		RightGrabber.set(OperateController.getY(GenericHID.Hand.kLeft));
+		LeftGrabber.set(-OperateController.getY(GenericHID.Hand.kLeft));
 	}
 
 	/**
