@@ -25,6 +25,8 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.PIDSourceType;
 
+import org.usfirst.frc.team2930.robot.commands.*;
+
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to each mode, as described in the TimedRobot
@@ -40,14 +42,14 @@ public class Robot extends TimedRobot {
 
 	Command m_autonomousCommand;
 	SendableChooser<Command> m_chooser = new SendableChooser<>();
-	DifferentialDrive johnBotsDriveTrainOfPain;
-	XboxController driveController, operateController;
-	AHRS gyro;
-	Encoder rightEncoder/*, leftEncoder*/;
-	Spark leftGrabber, rightGrabber;
-	PIDController PIDDrive, PIDRotate;
-	SimplePIDOutput PIDDriveOutput, PIDRotateOutput;
-	EncoderAveragePIDSource encoderAverage;
+	public DifferentialDrive johnBotsDriveTrainOfPain;
+	public XboxController driveController, operateController;
+	public AHRS gyro;
+	public Encoder rightEncoder/*, leftEncoder*/;
+	public Spark leftGrabber, rightGrabber;
+	public PIDController PIDDrive, PIDRotate;
+	public SimplePIDOutput PIDDriveOutput, PIDRotateOutput;
+	public EncoderAveragePIDSource encoderAverage;
 	public void encoderReset() {
 		rightEncoder.reset();
 		//LeftEncoder.reset();
@@ -70,8 +72,8 @@ public class Robot extends TimedRobot {
 		driveController = new XboxController(0);
 		operateController = new XboxController(1);
 		gyro = new AHRS(SerialPort.Port.kMXP);
-		rightEncoder = new Encoder(9, 8);
-		//leftEncoder = new Encoder(2, 3);
+		rightEncoder = new Encoder(9, 8, true);
+		//leftEncoder = new Encoder(2, 3, true);
 		leftGrabber = new Spark(4);
 		rightGrabber = new Spark(5);
 		rightEncoder.setDistancePerPulse(0.0043970539738375);
@@ -81,8 +83,12 @@ public class Robot extends TimedRobot {
 		PIDRotateOutput = new SimplePIDOutput(0);
 		rightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		//leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
-		PIDDrive = new PIDController(0, 0, 0, encoderAverage, PIDDriveOutput);
-		PIDRotate = new PIDController(0, 0, 0, gyro, PIDRotateOutput);
+		PIDDrive = new PIDController(0.30, 0, 0.7, encoderAverage, PIDDriveOutput);
+		PIDDrive.setAbsoluteTolerance(0.75);
+		//PIDDrive.setToleranceBuffer(20);
+		PIDRotate = new PIDController(0.02, 0, 0.04, gyro, PIDRotateOutput);
+		PIDRotate.setAbsoluteTolerance(15.0);
+		//PIDRotate.setToleranceBuffer(20);
 	}
 	
 	@Override
@@ -121,7 +127,8 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		m_autonomousCommand = m_chooser.getSelected();
+		//m_autonomousCommand = m_chooser.getSelected();
+		m_autonomousCommand = new DriveByDistanceCommand(this, 5);
 
 		/*
 		 * String autoSelected = SmartDashboard.getString("Auto Selector",
@@ -165,7 +172,7 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopPeriodic() {
 		Scheduler.getInstance().run();
-		johnBotsDriveTrainOfPain.arcadeDrive(driveController.getY(GenericHID.Hand.kLeft), driveController.getX(GenericHID.Hand.kRight));
+		johnBotsDriveTrainOfPain.arcadeDrive(-driveController.getY(GenericHID.Hand.kLeft), driveController.getX(GenericHID.Hand.kRight));
 		rightGrabber.set(operateController.getY(GenericHID.Hand.kLeft));
 		leftGrabber.set(-operateController.getY(GenericHID.Hand.kLeft));
 	}
