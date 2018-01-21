@@ -45,13 +45,13 @@ public class Robot extends TimedRobot {
 	public DifferentialDrive johnBotsDriveTrainOfPain;
 	public XboxController driveController, operateController;
 	public AHRS gyro;
-	public Encoder rightEncoder/*, leftEncoder*/;
+	public Encoder leftEncoder/*, leftEncoder*/;
 	public Spark leftGrabber, rightGrabber;
 	public PIDController PIDDrive, PIDRotate;
 	public SimplePIDOutput PIDDriveOutput, PIDRotateOutput;
 	public EncoderAveragePIDSource encoderAverage;
 	public void encoderReset() {
-		rightEncoder.reset();
+		leftEncoder.reset();
 		//LeftEncoder.reset();
 	}
 	public double average(double x, double y) {
@@ -72,22 +72,22 @@ public class Robot extends TimedRobot {
 		driveController = new XboxController(0);
 		operateController = new XboxController(1);
 		gyro = new AHRS(SerialPort.Port.kMXP);
-		rightEncoder = new Encoder(9, 8, true);
+		leftEncoder = new Encoder(9, 8, true);
 		//leftEncoder = new Encoder(2, 3, true);
 		leftGrabber = new Spark(4);
 		rightGrabber = new Spark(5);
-		rightEncoder.setDistancePerPulse(0.0043970539738375);
+		leftEncoder.setDistancePerPulse(0.0043970539738375);
 		//leftEncoder.setDistancePerPulse(0.0043970539738375);
-		encoderAverage = new EncoderAveragePIDSource(rightEncoder/*leftEncoder*/, rightEncoder);
+		encoderAverage = new EncoderAveragePIDSource(leftEncoder/*leftEncoder*/, leftEncoder);
 		PIDDriveOutput = new SimplePIDOutput(0);
 		PIDRotateOutput = new SimplePIDOutput(0);
-		rightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
+		leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		//leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
-		PIDDrive = new PIDController(0.30, 0, 0.7, encoderAverage, PIDDriveOutput);
+		PIDDrive = new PIDController(2.4, 0, 6.5, encoderAverage, PIDDriveOutput);
 		PIDDrive.setAbsoluteTolerance(0.75);
 		//PIDDrive.setToleranceBuffer(20);
-		PIDRotate = new PIDController(0.02, 0, 0.04, gyro, PIDRotateOutput);
-		PIDRotate.setAbsoluteTolerance(15.0);
+		PIDRotate = new PIDController(0.09, 0, 0.5, gyro, PIDRotateOutput);
+		//PIDRotate.setAbsoluteTolerance(5.0);
 		//PIDRotate.setToleranceBuffer(20);
 	}
 	
@@ -95,8 +95,8 @@ public class Robot extends TimedRobot {
 	public void robotPeriodic() {
 		SmartDashboard.putNumber("Gyro Angle ", gyro.getYaw());
 		SmartDashboard.putNumber("Rate of Turning ", gyro.getRate());
-		SmartDashboard.putNumber("Distance ", /*average(*/rightEncoder.getDistance()/*, leftEncoder.getDistance())*/);
-		SmartDashboard.putNumber("Speed ", /*average(*/rightEncoder.getRate()/*, leftEncoder.getRate())*/);
+		SmartDashboard.putNumber("Distance ", /*average(*/leftEncoder.getDistance()/*, leftEncoder.getDistance())*/);
+		SmartDashboard.putNumber("Speed ", /*average(*/leftEncoder.getRate()/*, leftEncoder.getRate())*/);
 	}
 
 	/**
@@ -128,7 +128,8 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousInit() {
 		//m_autonomousCommand = m_chooser.getSelected();
-		m_autonomousCommand = new DriveByDistanceCommand(this, 5);
+		//m_autonomousCommand = new DriveByDistanceCommand(this, 5, gyro.getAngle());
+		m_autonomousCommand = new RotateToAngleCommand(this, 100);
 
 		/*
 		 * String autoSelected = SmartDashboard.getString("Auto Selector",
@@ -141,8 +142,7 @@ public class Robot extends TimedRobot {
 		if (m_autonomousCommand != null) {
 			m_autonomousCommand.start();
 		}
-		gyro.reset();
-		encoderReset();
+		//gyro.reset();
 		String gameData;
 		gameData = DriverStation.getInstance().getGameSpecificMessage();
 	}
@@ -175,6 +175,9 @@ public class Robot extends TimedRobot {
 		johnBotsDriveTrainOfPain.arcadeDrive(-driveController.getY(GenericHID.Hand.kLeft), driveController.getX(GenericHID.Hand.kRight));
 		rightGrabber.set(operateController.getY(GenericHID.Hand.kLeft));
 		leftGrabber.set(-operateController.getY(GenericHID.Hand.kLeft));
+		if (operateController.getBButton()) {
+			gyro.reset();
+		}
 	}
 
 	/**
