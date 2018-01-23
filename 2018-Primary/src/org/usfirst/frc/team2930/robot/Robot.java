@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -46,14 +47,16 @@ public class Robot extends TimedRobot {
 	public DifferentialDrive johnBotsDriveTrainOfPain;
 	public XboxController driveController, operateController;
 	public AHRS gyro;
-	public Encoder leftEncoder/*, leftEncoder*/;
+	public Encoder leftEncoder, rightEncoder;
 	public Spark leftGrabber, rightGrabber;
 	public PIDController PIDDrive, PIDRotate;
 	public SimplePIDOutput PIDDriveOutput, PIDRotateOutput;
 	public EncoderAveragePIDSource encoderAverage;
+	public DoubleSolenoid plsWork;
+	public Spark rightDrive, leftDrive;
 	public void encoderReset() {
 		leftEncoder.reset();
-		//LeftEncoder.reset();
+		rightEncoder.reset();
 	}
 	public double average(double x, double y) {
 		return (x + y) / 2;
@@ -69,25 +72,30 @@ public class Robot extends TimedRobot {
 		m_chooser.addDefault("Default Auto", new ExampleCommand());
 		// chooser.addObject("My Auto", new MyAutoCommand());
 		SmartDashboard.putData("Auto mode", m_chooser);
-		johnBotsDriveTrainOfPain = new DifferentialDrive(new Spark(0), new Spark(1));
+		rightDrive = new Spark(0);
+		leftDrive = new Spark(1);
+		rightDrive.setInverted(true);
+		leftDrive.setInverted(true);
+		johnBotsDriveTrainOfPain = new DifferentialDrive(leftDrive, rightDrive);
 		driveController = new XboxController(0);
 		operateController = new XboxController(1);
 		gyro = new AHRS(SerialPort.Port.kMXP);
-		leftEncoder = new Encoder(9, 8, true);
-		//leftEncoder = new Encoder(2, 3, true);
+		leftEncoder = new Encoder(0, 1);
+		rightEncoder = new Encoder(2, 3, true);
 		leftGrabber = new Spark(4);
 		rightGrabber = new Spark(5);
+		plsWork = new DoubleSolenoid(0, 1);
 		leftEncoder.setDistancePerPulse(0.0043970539738375);
-		//leftEncoder.setDistancePerPulse(0.0043970539738375);
-		encoderAverage = new EncoderAveragePIDSource(leftEncoder/*leftEncoder*/, leftEncoder);
+		rightEncoder.setDistancePerPulse(0.0043970539738375);
+		encoderAverage = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		PIDDriveOutput = new SimplePIDOutput(0);
 		PIDRotateOutput = new SimplePIDOutput(0);
 		leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
-		//leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
-		PIDDrive = new PIDController(2.4, 0, 6.5, encoderAverage, PIDDriveOutput);
+		rightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
+		PIDDrive = new PIDController(0.3, 0, 0.7, encoderAverage, PIDDriveOutput);
 		PIDDrive.setAbsoluteTolerance(0.75);
 		//PIDDrive.setToleranceBuffer(20);
-		PIDRotate = new PIDController(0.09, 0, 0.5, gyro, PIDRotateOutput);
+		PIDRotate = new PIDController(0.02, 0, 0.04, gyro, PIDRotateOutput);
 		//PIDRotate.setAbsoluteTolerance(5.0);
 		//PIDRotate.setToleranceBuffer(20);
 	}
@@ -96,8 +104,10 @@ public class Robot extends TimedRobot {
 	public void robotPeriodic() {
 		SmartDashboard.putNumber("Gyro Angle ", gyro.getYaw());
 		SmartDashboard.putNumber("Rate of Turning ", gyro.getRate());
-		SmartDashboard.putNumber("Distance ", /*average(*/leftEncoder.getDistance()/*, leftEncoder.getDistance())*/);
-		SmartDashboard.putNumber("Speed ", /*average(*/leftEncoder.getRate()/*, leftEncoder.getRate())*/);
+		SmartDashboard.putNumber("Left Distance ", leftEncoder.getDistance());
+		SmartDashboard.putNumber("Right Distance ", rightEncoder.getDistance());
+		SmartDashboard.putNumber("Distance ", average(leftEncoder.getDistance(), rightEncoder.getDistance()));
+		SmartDashboard.putNumber("Speed ", average(leftEncoder.getRate(), rightEncoder.getRate()));
 	}
 
 	/**
@@ -174,12 +184,16 @@ public class Robot extends TimedRobot {
 	public void teleopPeriodic() {
 		Scheduler.getInstance().run();
 		johnBotsDriveTrainOfPain.arcadeDrive(-driveController.getY(GenericHID.Hand.kLeft), driveController.getX(GenericHID.Hand.kRight));
-		rightGrabber.set(operateController.getY(GenericHID.Hand.kLeft));
-		leftGrabber.set(-operateController.getY(GenericHID.Hand.kLeft));
+		//rightGrabber.set(operateController.getY(GenericHID.Hand.kLeft));
+		//leftGrabber.set(-operateController.getY(GenericHID.Hand.kLeft));
 		if (operateController.getBButton()) {
 			gyro.reset();
 		}
+		if (operateController.getAButton()) {
+			plsWork.set(DoubleSolenoid.Value.kForward);
+		}
 	}
+	
 
 	/**
 	 * This function is called periodically during test mode.
