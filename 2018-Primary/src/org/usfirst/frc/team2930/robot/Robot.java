@@ -7,8 +7,7 @@
 
 package org.usfirst.frc.team2930.robot;
 
-import org.usfirst.frc.team2930.robot.commands.ExampleCommand;
-import org.usfirst.frc.team2930.robot.commands.RotateToAngleCommand;
+import org.usfirst.frc.team2930.robot.commands.*;
 import org.usfirst.frc.team2930.robot.subsystems.ExampleSubsystem;
 
 import com.kauailabs.navx.frc.AHRS;
@@ -18,7 +17,8 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.PIDSourceType;
-import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.filters.*;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
@@ -38,22 +38,26 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
  * project.
  */
 public class Robot extends TimedRobot {
-	public static final ExampleSubsystem kExampleSubsystem
+	/*public static final ExampleSubsystem kExampleSubsystem
 			= new ExampleSubsystem();
-	public static OI m_oi;
+	public static OI m_oi;*/
 
 	Command m_autonomousCommand;
 	SendableChooser<Command> m_chooser = new SendableChooser<>();
 	public DifferentialDrive johnBotsDriveTrainOfPain;
 	public XboxController driveController, operateController;
 	public AHRS gyro;
+	public LinearDigitalFilter gyroFilter;
 	public Encoder leftEncoder, rightEncoder;
+	public LinearDigitalFilter encoderAverageRateFilter;
 	public Spark leftGrabber, rightGrabber;
 	public PIDController PIDDrive, PIDRotate;
 	public SimplePIDOutput PIDDriveOutput, PIDRotateOutput;
 	public EncoderAveragePIDSource encoderAverage;
+	public EncoderAveragePIDSource encoderAverageRate;
 	public DoubleSolenoid plsWork;
 	public Spark rightDrive, leftDrive;
+	public double currentX, currentY;
 	public void encoderReset() {
 		leftEncoder.reset();
 		rightEncoder.reset();
@@ -68,9 +72,9 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void robotInit() {
-		m_oi = new OI();
-		m_chooser.addDefault("Default Auto", new ExampleCommand());
-		// chooser.addObject("My Auto", new MyAutoCommand());
+		//m_oi = new OI();
+		//m_chooser.addDefault("Default Auto", new ExampleCommand());
+		//m_chooser.addObject("My Auto", new MyAutoCommand());
 		SmartDashboard.putData("Auto mode", m_chooser);
 		rightDrive = new Spark(0);
 		leftDrive = new Spark(1);
@@ -79,7 +83,7 @@ public class Robot extends TimedRobot {
 		johnBotsDriveTrainOfPain = new DifferentialDrive(leftDrive, rightDrive);
 		driveController = new XboxController(0);
 		operateController = new XboxController(1);
-		gyro = new AHRS(SerialPort.Port.kMXP);
+		gyro = new AHRS(SPI.Port.kMXP);
 		leftEncoder = new Encoder(0, 1);
 		rightEncoder = new Encoder(2, 3, true);
 		leftGrabber = new Spark(4);
@@ -87,27 +91,37 @@ public class Robot extends TimedRobot {
 		plsWork = new DoubleSolenoid(0, 1);
 		leftEncoder.setDistancePerPulse(0.0043970539738375);
 		rightEncoder.setDistancePerPulse(0.0043970539738375);
+		currentX = 0;
+		currentY = 0;
 		encoderAverage = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
+		encoderAverageRate = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
+		encoderAverageRate.setPIDSourceType(PIDSourceType.kRate);
 		PIDDriveOutput = new SimplePIDOutput(0);
 		PIDRotateOutput = new SimplePIDOutput(0);
 		leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		rightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
-		PIDDrive = new PIDController(0.3, 0, 0.7, encoderAverage, PIDDriveOutput);
-		PIDDrive.setAbsoluteTolerance(0.75);
-		//PIDDrive.setToleranceBuffer(20);
-		PIDRotate = new PIDController(0.02, 0, 0.04, gyro, PIDRotateOutput);
-		//PIDRotate.setAbsoluteTolerance(5.0);
-		//PIDRotate.setToleranceBuffer(20);
+		encoderAverageRateFilter = LinearDigitalFilter.movingAverage(encoderAverageRate, 30);
+		PIDDrive = new PIDController(0.3, 0, 0.7, encoderAverage, PIDDriveOutput/*, 20*/);
+		PIDDrive.setAbsoluteTolerance(1.0);
+		gyroFilter = LinearDigitalFilter.movingAverage(gyro, 50);
+		PIDRotate = new PIDController(0.03, 0, 0.08, gyro, PIDRotateOutput/*, 20*/);
+		PIDRotate.setInputRange(-180, 180);
+		PIDRotate.setContinuous();
+		PIDRotate.setAbsoluteTolerance(20.0);
 	}
 	
 	@Override
 	public void robotPeriodic() {
-		SmartDashboard.putNumber("Gyro Angle ", gyro.getYaw());
-		SmartDashboard.putNumber("Rate of Turning ", gyro.getRate());
+		SmartDashboard.putNumber("Gyro Angle", gyro.getYaw());
+		SmartDashboard.putNumber("Rate of Turning", gyro.getRate());
+		SmartDashboard.putNumber("Gyro Temperature (VERY IMPORTANT)", gyro.getTempC());
 		SmartDashboard.putNumber("Left Distance ", leftEncoder.getDistance());
 		SmartDashboard.putNumber("Right Distance ", rightEncoder.getDistance());
 		SmartDashboard.putNumber("Distance ", average(leftEncoder.getDistance(), rightEncoder.getDistance()));
 		SmartDashboard.putNumber("Speed ", average(leftEncoder.getRate(), rightEncoder.getRate()));
+		SmartDashboard.putString("In memoriam Mitchell", "Pineapple Mentality");
+		SmartDashboard.putNumber("Encoder thingy filter value", encoderAverageRateFilter.pidGet());
+		SmartDashboard.putNumber("Gyro thingy filter value", gyroFilter.pidGet());
 	}
 
 	/**
@@ -140,7 +154,9 @@ public class Robot extends TimedRobot {
 	public void autonomousInit() {
 		//m_autonomousCommand = m_chooser.getSelected();
 		//m_autonomousCommand = new DriveByDistanceCommand(this, 5, gyro.getAngle());
-		m_autonomousCommand = new RotateToAngleCommand(this, 100);
+		//m_autonomousCommand = new RotateToAngleCommand(this, 90);
+		m_autonomousCommand = new ShapeOfPowerGroup(this);
+		
 
 		/*
 		 * String autoSelected = SmartDashboard.getString("Auto Selector",
@@ -153,7 +169,8 @@ public class Robot extends TimedRobot {
 		if (m_autonomousCommand != null) {
 			m_autonomousCommand.start();
 		}
-		//gyro.reset();
+		gyro.reset();
+		encoderReset();
 		String gameData;
 		gameData = DriverStation.getInstance().getGameSpecificMessage();
 	}
@@ -184,8 +201,8 @@ public class Robot extends TimedRobot {
 	public void teleopPeriodic() {
 		Scheduler.getInstance().run();
 		johnBotsDriveTrainOfPain.arcadeDrive(-driveController.getY(GenericHID.Hand.kLeft), driveController.getX(GenericHID.Hand.kRight));
-		//rightGrabber.set(operateController.getY(GenericHID.Hand.kLeft));
-		//leftGrabber.set(-operateController.getY(GenericHID.Hand.kLeft));
+		rightGrabber.set(operateController.getY(GenericHID.Hand.kLeft));
+		leftGrabber.set(-operateController.getY(GenericHID.Hand.kLeft));
 		if (operateController.getBButton()) {
 			gyro.reset();
 		}

@@ -33,9 +33,9 @@ public class RotateToAngleCommand extends Command {
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	/*if (thisRobot.PIDRotate.onTarget()) {
+    	if (thisRobot.PIDRotate.onTarget() && Math.abs(thisRobot.gyroFilter.get() % 360 - angle % 360) < 20.0) {
     		return true;
-    	}*/
+    	}
         return false;
     }
 
