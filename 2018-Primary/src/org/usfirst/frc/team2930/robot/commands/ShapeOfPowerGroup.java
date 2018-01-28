@@ -38,5 +38,15 @@ public class ShapeOfPowerGroup extends CommandGroup {
     	toX = 0;
     	toY = 0;
     	addSequential(new DriveToPointGroup(thisRobot, toX, toY));
+    	toX = 2.5;
+    	toY = 2.5 * Math.sqrt(3);
+    	addSequential(new DriveToPointGroup(thisRobot, toX, toY, true));
+    	toX = 5;
+    	toY = 0;
+    	addSequential(new DriveToPointGroup(thisRobot, toX, toY, true));
+    	toX = 0;
+    	toY = 0;
+    	addSequential(new DriveToPointGroup(thisRobot, toX, toY, true));
+    	addSequential(new RotateToAngleCommand(thisRobot, 0));
     }
 }

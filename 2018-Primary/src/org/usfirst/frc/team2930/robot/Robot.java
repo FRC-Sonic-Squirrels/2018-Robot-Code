@@ -104,7 +104,7 @@ public class Robot extends TimedRobot {
 		PIDDrive = new PIDController(0.3, 0, 0.7, encoderAverage, PIDDriveOutput/*, 20*/);
 		PIDDrive.setAbsoluteTolerance(1.0);
 		gyroFilter = LinearDigitalFilter.movingAverage(gyro, 50);
-		PIDRotate = new PIDController(0.03, 0, 0.08, gyro, PIDRotateOutput/*, 20*/);
+		PIDRotate = new PIDController(0.04, 0, 0.12, gyro, PIDRotateOutput/*, 20*/);
 		PIDRotate.setInputRange(-180, 180);
 		PIDRotate.setContinuous();
 		PIDRotate.setAbsoluteTolerance(20.0);
@@ -153,7 +153,7 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousInit() {
 		//m_autonomousCommand = m_chooser.getSelected();
-		//m_autonomousCommand = new DriveByDistanceCommand(this, 5, gyro.getAngle());
+		//m_autonomousCommand = new DriveToPointGroup(this, 0, -5, true);
 		//m_autonomousCommand = new RotateToAngleCommand(this, 90);
 		m_autonomousCommand = new ShapeOfPowerGroup(this);
 		

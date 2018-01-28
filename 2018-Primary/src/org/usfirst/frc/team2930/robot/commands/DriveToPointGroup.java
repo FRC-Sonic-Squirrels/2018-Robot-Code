@@ -11,8 +11,12 @@ import edu.wpi.first.wpilibj.command.CommandGroup;
  *
  */
 public class DriveToPointGroup extends CommandGroup {
+	
+	public DriveToPointGroup(Robot robot, double x, double y) {
+		this(robot, x, y, false);
+	}
 
-    public DriveToPointGroup(Robot robot, double x, double y) {
+    public DriveToPointGroup(Robot robot, double x, double y, boolean isReversed) {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
@@ -37,8 +41,13 @@ public class DriveToPointGroup extends CommandGroup {
 		double yDistance = toY - robot.currentY;
 		double theta = Math.toDegrees(Math.atan2(xDistance, yDistance));
 		double distance = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
-    	addSequential(new RotateToAngleCommand(thisRobot, theta));
-    	addSequential(new DriveByDistanceCommand(thisRobot, distance, theta));
+		
+		if (isReversed) {
+			distance = -distance;
+			theta = theta > 0 ? theta - 180 : theta + 180;
+		}
+		addSequential(new RotateToAngleCommand(thisRobot, theta));
+		addSequential(new DriveByDistanceCommand(thisRobot, distance, theta));
     	thisRobot.currentX = toX;
     	thisRobot.currentY = toY;
     }
