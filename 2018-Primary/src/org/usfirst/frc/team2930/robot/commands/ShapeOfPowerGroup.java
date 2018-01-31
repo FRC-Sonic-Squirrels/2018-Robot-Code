@@ -29,7 +29,8 @@ public class ShapeOfPowerGroup extends CommandGroup {
         // arm.
     	
     	Robot thisRobot = robot;
-    	double toX = 2.5;
+    	//Triangle of Power
+    	/*double toX = 2.5;
     	double toY = 2.5 * Math.sqrt(3);
     	addSequential(new DriveToPointGroup(thisRobot, toX, toY));
     	toX = 5;
@@ -47,6 +48,12 @@ public class ShapeOfPowerGroup extends CommandGroup {
     	toX = 0;
     	toY = 0;
     	addSequential(new DriveToPointGroup(thisRobot, toX, toY, true));
+    	addSequential(new RotateToAngleCommand(thisRobot, 0));*/
+    	double toX = 0;
+    	double toY = 5;
+    	addSequential(new DriveToPointGroup(thisRobot, toX, toY));
+    	toY = 0;
+    	addSequential(new DriveToPointGroup(thisRobot, toX, toY));
     	addSequential(new RotateToAngleCommand(thisRobot, 0));
     }
 }

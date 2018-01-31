@@ -44,6 +44,7 @@ public class Robot extends TimedRobot {
 
 	Command m_autonomousCommand;
 	SendableChooser<Command> m_chooser = new SendableChooser<>();
+	SendableChooser<Boolean> doScaleAuton = new SendableChooser<>();
 	public DifferentialDrive johnBotsDriveTrainOfPain;
 	public XboxController driveController, operateController;
 	public AHRS gyro;
@@ -75,7 +76,9 @@ public class Robot extends TimedRobot {
 		//m_oi = new OI();
 		//m_chooser.addDefault("Default Auto", new ExampleCommand());
 		//m_chooser.addObject("My Auto", new MyAutoCommand());
+		doScaleAuton.addDefault("Don't do scale auto", null);
 		SmartDashboard.putData("Auto mode", m_chooser);
+		SmartDashboard.putData("Are we solo carrying?", doScaleAuton);
 		rightDrive = new Spark(0);
 		leftDrive = new Spark(1);
 		rightDrive.setInverted(true);
@@ -96,18 +99,20 @@ public class Robot extends TimedRobot {
 		encoderAverage = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		encoderAverageRate = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		encoderAverageRate.setPIDSourceType(PIDSourceType.kRate);
-		PIDDriveOutput = new SimplePIDOutput(0);
-		PIDRotateOutput = new SimplePIDOutput(0);
+		PIDDriveOutput = new SimplePIDOutput(0, 1);
+		PIDRotateOutput = new SimplePIDOutput(0, 1);
 		leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		rightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		encoderAverageRateFilter = LinearDigitalFilter.movingAverage(encoderAverageRate, 30);
-		PIDDrive = new PIDController(0.3, 0, 0.7, encoderAverage, PIDDriveOutput/*, 20*/);
+		PIDDrive = new PIDController(0.3, 0, 0.7, encoderAverage, PIDDriveOutput/*, 0.02*/);
 		PIDDrive.setAbsoluteTolerance(1.0);
+		PIDDrive.setOutputRange(-0.9, 0.9);
 		gyroFilter = LinearDigitalFilter.movingAverage(gyro, 50);
-		PIDRotate = new PIDController(0.04, 0, 0.12, gyro, PIDRotateOutput/*, 20*/);
+		PIDRotate = new PIDController(0.04, 0, 0.12, gyro, PIDRotateOutput/*, 0.02*/);
 		PIDRotate.setInputRange(-180, 180);
 		PIDRotate.setContinuous();
 		PIDRotate.setAbsoluteTolerance(20.0);
+		PIDRotate.setOutputRange(-0.9, 0.9);
 	}
 	
 	@Override
