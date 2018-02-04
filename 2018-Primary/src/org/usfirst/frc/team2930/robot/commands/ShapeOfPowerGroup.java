@@ -1,7 +1,8 @@
 package org.usfirst.frc.team2930.robot.commands;
 
 import org.usfirst.frc.team2930.robot.Robot;
-
+import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import org.usfirst.frc.team2930.robot.commands.*;
 
@@ -49,11 +50,10 @@ public class ShapeOfPowerGroup extends CommandGroup {
     	toY = 0;
     	addSequential(new DriveToPointGroup(thisRobot, toX, toY, true));
     	addSequential(new RotateToAngleCommand(thisRobot, 0));*/
-    	double toX = 0;
-    	double toY = 5;
-    	addSequential(new DriveToPointGroup(thisRobot, toX, toY));
-    	toY = 0;
-    	addSequential(new DriveToPointGroup(thisRobot, toX, toY));
+    	Point2D.Double toPoint = new Double(0, 5);
+    	addSequential(new DriveToPointGroup(thisRobot, toPoint.getX(), toPoint.getY()));
+    	toPoint.setLocation(0, 0);
+    	addSequential(new DriveToPointGroup(thisRobot, toPoint.getX(), toPoint.getY()));
     	addSequential(new RotateToAngleCommand(thisRobot, 0));
     }
 }

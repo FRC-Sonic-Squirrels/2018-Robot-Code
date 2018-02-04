@@ -7,6 +7,9 @@
 
 package org.usfirst.frc.team2930.robot;
 
+import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
+
 import org.usfirst.frc.team2930.robot.commands.*;
 import org.usfirst.frc.team2930.robot.subsystems.ExampleSubsystem;
 
@@ -43,8 +46,13 @@ public class Robot extends TimedRobot {
 	public static OI m_oi;*/
 
 	Command m_autonomousCommand;
-	SendableChooser<Command> m_chooser = new SendableChooser<>();
+	SendableChooser<Point2D.Double> startPosition = new SendableChooser<>();
+	public Point2D.Double leftStartPoint = new Double(46.96, 19.31);
+	public Point2D.Double centerStartPoint = new Double(167.58, 19.31);
+	public Point2D.Double rightStartPoint = new Double(277.65, 19.31);
+	public Point2D.Double currentPoint = new Double();
 	SendableChooser<Boolean> doScaleAuton = new SendableChooser<>();
+	SendableChooser<Boolean> doLongPaths = new SendableChooser<>();
 	public DifferentialDrive johnBotsDriveTrainOfPain;
 	public XboxController driveController, operateController;
 	public AHRS gyro;
@@ -58,7 +66,7 @@ public class Robot extends TimedRobot {
 	public EncoderAveragePIDSource encoderAverageRate;
 	public DoubleSolenoid plsWork;
 	public Spark rightDrive, leftDrive;
-	public double currentX, currentY;
+	public String gameData;
 	public void encoderReset() {
 		leftEncoder.reset();
 		rightEncoder.reset();
@@ -76,9 +84,17 @@ public class Robot extends TimedRobot {
 		//m_oi = new OI();
 		//m_chooser.addDefault("Default Auto", new ExampleCommand());
 		//m_chooser.addObject("My Auto", new MyAutoCommand());
-		doScaleAuton.addDefault("Don't do scale auto", null);
-		SmartDashboard.putData("Auto mode", m_chooser);
-		SmartDashboard.putData("Are we solo carrying?", doScaleAuton);
+		startPosition.addDefault("SELECT START POSITION", null);
+		startPosition.addObject("Center", centerStartPoint);
+		startPosition.addObject("Left", leftStartPoint);
+		startPosition.addObject("Right", rightStartPoint);
+		SmartDashboard.putData("Where are we?", startPosition);
+		doScaleAuton.addDefault("Don't do scale auto", false);
+		doScaleAuton.addObject("Do scale auto", true);
+		SmartDashboard.putData("Shall we do scale auton?", doScaleAuton);
+		doLongPaths.addDefault("Don't cross the field", false);
+		doLongPaths.addObject("Cross the field", true);
+		SmartDashboard.putData("Shall we cross the field?", doLongPaths);
 		rightDrive = new Spark(0);
 		leftDrive = new Spark(1);
 		rightDrive.setInverted(true);
@@ -87,15 +103,13 @@ public class Robot extends TimedRobot {
 		driveController = new XboxController(0);
 		operateController = new XboxController(1);
 		gyro = new AHRS(SPI.Port.kMXP);
-		leftEncoder = new Encoder(0, 1);
-		rightEncoder = new Encoder(2, 3, true);
+		leftEncoder = new Encoder(/*9, 8*/0, 1);
+		rightEncoder = new Encoder(/*7, 6*/2, 3, true);
 		leftGrabber = new Spark(4);
 		rightGrabber = new Spark(5);
 		plsWork = new DoubleSolenoid(0, 1);
-		leftEncoder.setDistancePerPulse(0.0043970539738375);
-		rightEncoder.setDistancePerPulse(0.0043970539738375);
-		currentX = 0;
-		currentY = 0;
+		leftEncoder.setDistancePerPulse(0.0366035002);
+		rightEncoder.setDistancePerPulse(0.0366035002);
 		encoderAverage = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		encoderAverageRate = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		encoderAverageRate.setPIDSourceType(PIDSourceType.kRate);
@@ -104,8 +118,8 @@ public class Robot extends TimedRobot {
 		leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		rightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		encoderAverageRateFilter = LinearDigitalFilter.movingAverage(encoderAverageRate, 30);
-		PIDDrive = new PIDController(0.3, 0, 0.7, encoderAverage, PIDDriveOutput/*, 0.02*/);
-		PIDDrive.setAbsoluteTolerance(1.0);
+		PIDDrive = new PIDController(0.3, 0, 0.2/*0.7*/, encoderAverage, PIDDriveOutput/*, 0.02*/);
+		PIDDrive.setAbsoluteTolerance(12.0);
 		PIDDrive.setOutputRange(-0.9, 0.9);
 		gyroFilter = LinearDigitalFilter.movingAverage(gyro, 50);
 		PIDRotate = new PIDController(0.04, 0, 0.12, gyro, PIDRotateOutput/*, 0.02*/);
@@ -157,11 +171,45 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousInit() {
+		gameData = DriverStation.getInstance().getGameSpecificMessage();
 		//m_autonomousCommand = m_chooser.getSelected();
 		//m_autonomousCommand = new DriveToPointGroup(this, 0, -5, true);
 		//m_autonomousCommand = new RotateToAngleCommand(this, 90);
-		m_autonomousCommand = new ShapeOfPowerGroup(this);
-		
+		//m_autonomousCommand = new ShapeOfPowerGroup(this);
+		if (startPosition.getSelected().equals(centerStartPoint)) {
+			currentPoint.setLocation(centerStartPoint);
+			m_autonomousCommand = new CenterAutonSwitchGroup(this);
+		}
+		else if (startPosition.getSelected().equals(leftStartPoint)) {
+			currentPoint.setLocation(leftStartPoint);
+			if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L') {
+				m_autonomousCommand = new LeftAutonScaleGroup(this);
+			}
+			else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R' && doLongPaths.getSelected()) {
+				m_autonomousCommand = new LeftAutonOppositeScaleGroup(this);
+			}
+			else if (gameData.charAt(0) == 'L') {
+				m_autonomousCommand = new LeftAutonSwitchGroup(this);
+			}
+			else {
+				m_autonomousCommand = new DriveToPointGroup(this, 46.96, 166.89);
+			}
+		}
+		else if (startPosition.getSelected().equals(rightStartPoint)) {
+			currentPoint.setLocation(rightStartPoint);
+			if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R') {
+				m_autonomousCommand = new RightAutonScaleGroup(this);
+			}
+			else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L' && doLongPaths.getSelected()) {
+				m_autonomousCommand = new RightAutonOppositeScaleGroup(this);
+			}
+			else if (gameData.charAt(0) == 'R') {
+				m_autonomousCommand = new RightAutonSwitchGroup(this);
+			}
+			else {
+				m_autonomousCommand = new DriveToPointGroup(this, 277.65, 166.89);
+			}
+		}
 
 		/*
 		 * String autoSelected = SmartDashboard.getString("Auto Selector",
@@ -176,8 +224,6 @@ public class Robot extends TimedRobot {
 		}
 		gyro.reset();
 		encoderReset();
-		String gameData;
-		gameData = DriverStation.getInstance().getGameSpecificMessage();
 	}
 
 	/**

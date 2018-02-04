@@ -4,6 +4,8 @@ import org.usfirst.frc.team2930.robot.Robot;
 
 import org.usfirst.frc.team2930.robot.*;
 import org.usfirst.frc.team2930.robot.commands.*;
+import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 
 import edu.wpi.first.wpilibj.command.CommandGroup;
 
@@ -12,11 +14,15 @@ import edu.wpi.first.wpilibj.command.CommandGroup;
  */
 public class DriveToPointGroup extends CommandGroup {
 	
+	public DriveToPointGroup(Robot robot, Point2D.Double toPoint) {
+		this(robot, toPoint, false);
+	}
+	
 	public DriveToPointGroup(Robot robot, double x, double y) {
-		this(robot, x, y, false);
+		this(robot, new Double(x, y), false);
 	}
 
-    public DriveToPointGroup(Robot robot, double x, double y, boolean isReversed) {
+    public DriveToPointGroup(Robot robot, Point2D.Double toPoint, boolean isReversed) {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
@@ -34,11 +40,8 @@ public class DriveToPointGroup extends CommandGroup {
         // a CommandGroup containing them would require both the chassis and the
         // arm.
     	
-    	Robot thisRobot = robot;
-    	double toX = x;
-    	double toY = y;
-    	double xDistance = toX - robot.currentX;
-		double yDistance = toY - robot.currentY;
+    	double xDistance = toPoint.getX() - robot.currentPoint.getX();
+		double yDistance = toPoint.getY() - robot.currentPoint.getY();
 		double theta = Math.toDegrees(Math.atan2(xDistance, yDistance));
 		double distance = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
 		
@@ -46,9 +49,8 @@ public class DriveToPointGroup extends CommandGroup {
 			distance = -distance;
 			theta = theta > 0 ? theta - 180 : theta + 180;
 		}
-		addSequential(new RotateToAngleCommand(thisRobot, theta));
-		addSequential(new DriveByDistanceCommand(thisRobot, distance, theta));
-    	thisRobot.currentX = toX;
-    	thisRobot.currentY = toY;
+		addSequential(new RotateToAngleCommand(robot, theta));
+		addSequential(new DriveByDistanceCommand(robot, distance, theta));
+    	robot.currentPoint.setLocation(toPoint.getX(), toPoint.getY());
     }
 }
