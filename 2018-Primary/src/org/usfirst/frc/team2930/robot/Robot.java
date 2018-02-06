@@ -11,7 +11,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
 
 import org.usfirst.frc.team2930.robot.commands.*;
-import org.usfirst.frc.team2930.robot.subsystems.ExampleSubsystem;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -60,11 +59,15 @@ public class Robot extends TimedRobot {
 	public Encoder leftEncoder, rightEncoder;
 	public LinearDigitalFilter encoderAverageRateFilter;
 	public Spark leftGrabber, rightGrabber;
+	public Spark elevator1, elevator2;
+	public Spark arm;
 	public PIDController PIDDrive, PIDRotate;
-	public SimplePIDOutput PIDDriveOutput, PIDRotateOutput;
+	public SimplePIDOutput PIDDriveOutput, PIDRotateOutput, PIDArmThings, PIDElevatorThings;
 	public EncoderAveragePIDSource encoderAverage;
 	public EncoderAveragePIDSource encoderAverageRate;
-	public DoubleSolenoid plsWork;
+	public DoubleSolenoid grasperDooDad;
+	public DoubleSolenoid shiftyBusiness;
+	public DoubleSolenoid intakeAngle;
 	public Spark rightDrive, leftDrive;
 	public String gameData;
 	public void encoderReset() {
@@ -99,6 +102,9 @@ public class Robot extends TimedRobot {
 		leftDrive = new Spark(1);
 		rightDrive.setInverted(true);
 		leftDrive.setInverted(true);
+		elevator1 = new Spark(2);
+		elevator2 = new Spark(3);
+		arm = new Spark(4);
 		johnBotsDriveTrainOfPain = new DifferentialDrive(leftDrive, rightDrive);
 		driveController = new XboxController(0);
 		operateController = new XboxController(1);
@@ -107,7 +113,9 @@ public class Robot extends TimedRobot {
 		rightEncoder = new Encoder(/*7, 6*/2, 3, true);
 		leftGrabber = new Spark(4);
 		rightGrabber = new Spark(5);
-		plsWork = new DoubleSolenoid(0, 1);
+		grasperDooDad = new DoubleSolenoid(0, 1);
+		shiftyBusiness = new DoubleSolenoid(2, 3);
+		intakeAngle = new DoubleSolenoid(4, 5);
 		leftEncoder.setDistancePerPulse(0.0366035002);
 		rightEncoder.setDistancePerPulse(0.0366035002);
 		encoderAverage = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
@@ -252,13 +260,47 @@ public class Robot extends TimedRobot {
 	public void teleopPeriodic() {
 		Scheduler.getInstance().run();
 		johnBotsDriveTrainOfPain.arcadeDrive(-driveController.getY(GenericHID.Hand.kLeft), driveController.getX(GenericHID.Hand.kRight));
-		rightGrabber.set(operateController.getY(GenericHID.Hand.kLeft));
-		leftGrabber.set(-operateController.getY(GenericHID.Hand.kLeft));
-		if (operateController.getBButton()) {
-			gyro.reset();
+		
+		if (operateController.getTriggerAxis(GenericHID.Hand.kLeft) > 0.1) {
+			rightGrabber.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft));
+			leftGrabber.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft));
 		}
+		else if (operateController.getTriggerAxis(GenericHID.Hand.kRight) > 0.1) {
+			rightGrabber.set(-operateController.getTriggerAxis(GenericHID.Hand.kRight));
+			leftGrabber.set(operateController.getTriggerAxis(GenericHID.Hand.kRight));
+		}
+		
+		//Intake
+		if (operateController.getY(GenericHID.Hand.kLeft) > 0) {
+			elevator1.set(operateController.getY(GenericHID.Hand.kLeft));
+			elevator2.set(operateController.getY(GenericHID.Hand.kLeft));
+		}
+		
+		//Outtake
+		if (operateController.getY(GenericHID.Hand.kRight) > 0) {
+			arm.set(operateController.getY(GenericHID.Hand.kRight));
+		}
+		
+		//Open or close the grasper
 		if (operateController.getAButton()) {
-			plsWork.set(DoubleSolenoid.Value.kForward);
+			grasperDooDad.set(DoubleSolenoid.Value.kForward);
+		}
+		else {
+			grasperDooDad.set(DoubleSolenoid.Value.kReverse);
+		}
+		
+		//Operator override on intake up or down
+		if (operateController.getXButton()) {
+			intakeAngle.set(DoubleSolenoid.Value.kReverse);
+		}
+		else if (operateController.getYButton()) {
+			intakeAngle.set(DoubleSolenoid.Value.kForward);
+		}
+		else if (driveController.getXButton()) {
+			intakeAngle.set(DoubleSolenoid.Value.kReverse);
+		}
+		else if (driveController.getYButton()) {
+			intakeAngle.set(DoubleSolenoid.Value.kForward);
 		}
 	}
 	
