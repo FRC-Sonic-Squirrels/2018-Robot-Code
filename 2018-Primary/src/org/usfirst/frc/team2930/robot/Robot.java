@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DigitalInput;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -56,20 +57,25 @@ public class Robot extends TimedRobot {
 	public XboxController driveController, operateController;
 	public AHRS gyro;
 	public LinearDigitalFilter gyroFilter;
-	public Encoder leftEncoder, rightEncoder;
+	public Encoder leftEncoder, rightEncoder, leftElevator, armEncoder;
 	public LinearDigitalFilter encoderAverageRateFilter;
-	public Spark leftGrabber, rightGrabber;
+	public Spark leftIntake, rightIntake;
 	public Spark elevator1, elevator2;
 	public Spark arm;
-	public PIDController PIDDrive, PIDRotate;
+	public PIDController PIDDrive, PIDRotate, PIDElevator, PIDArm;
 	public SimplePIDOutput PIDDriveOutput, PIDRotateOutput, PIDArmThings, PIDElevatorThings;
 	public EncoderAveragePIDSource encoderAverage;
 	public EncoderAveragePIDSource encoderAverageRate;
-	public DoubleSolenoid grasperDooDad;
+	public DoubleSolenoid copyrightedPatentPendingSquirrelThumbTM;
 	public DoubleSolenoid shiftyBusiness;
 	public DoubleSolenoid intakeAngle;
 	public Spark rightDrive, leftDrive;
+	public DigitalInput testSensor;
 	public String gameData;
+	public final double ELEVATOR_TOP_VALUE = 0;
+	public final double ELEVATOR_BOTTOM_VALUE = 0;
+	public final double ARM_TOP_VALUE = 0;
+	public final double ARM_BOTTOM_VALUE = 0;
 	public void encoderReset() {
 		leftEncoder.reset();
 		rightEncoder.reset();
@@ -102,18 +108,20 @@ public class Robot extends TimedRobot {
 		leftDrive = new Spark(1);
 		rightDrive.setInverted(true);
 		leftDrive.setInverted(true);
-		elevator1 = new Spark(2);
-		elevator2 = new Spark(3);
-		arm = new Spark(4);
+		elevator1 = new Spark(4);
+		elevator2 = new Spark(5);
+		arm = new Spark(6);
 		johnBotsDriveTrainOfPain = new DifferentialDrive(leftDrive, rightDrive);
 		driveController = new XboxController(0);
 		operateController = new XboxController(1);
 		gyro = new AHRS(SPI.Port.kMXP);
 		leftEncoder = new Encoder(/*9, 8*/0, 1);
 		rightEncoder = new Encoder(/*7, 6*/2, 3, true);
-		leftGrabber = new Spark(4);
-		rightGrabber = new Spark(5);
-		grasperDooDad = new DoubleSolenoid(0, 1);
+		leftElevator = new Encoder(5, 4);
+		leftIntake = new Spark(2);
+		rightIntake = new Spark(3);
+		testSensor = new DigitalInput(4);
+		copyrightedPatentPendingSquirrelThumbTM = new DoubleSolenoid(0, 1);
 		shiftyBusiness = new DoubleSolenoid(2, 3);
 		intakeAngle = new DoubleSolenoid(4, 5);
 		leftEncoder.setDistancePerPulse(0.0366035002);
@@ -123,6 +131,8 @@ public class Robot extends TimedRobot {
 		encoderAverageRate.setPIDSourceType(PIDSourceType.kRate);
 		PIDDriveOutput = new SimplePIDOutput(0, 1);
 		PIDRotateOutput = new SimplePIDOutput(0, 1);
+		PIDArmThings = new SimplePIDOutput(0, 1);
+		PIDElevatorThings = new SimplePIDOutput(0, 1);
 		leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		rightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		encoderAverageRateFilter = LinearDigitalFilter.movingAverage(encoderAverageRate, 30);
@@ -135,6 +145,12 @@ public class Robot extends TimedRobot {
 		PIDRotate.setContinuous();
 		PIDRotate.setAbsoluteTolerance(20.0);
 		PIDRotate.setOutputRange(-0.9, 0.9);
+		PIDElevator = new PIDController(0, 0, 0, 0, leftElevator, PIDElevatorThings/*, 0.02*/);
+		PIDElevator.setAbsoluteTolerance(0);
+		PIDElevator.setOutputRange(0.9, -0.9);
+		PIDArm = new PIDController(0, 0, 0, 0, armEncoder, PIDArmThings/*, 0.02*/);
+		PIDArm.setAbsoluteTolerance(0);
+		PIDArm.setOutputRange(0.9, -0.9);
 	}
 	
 	@Override
@@ -149,6 +165,7 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putString("In memoriam Mitchell", "Pineapple Mentality");
 		SmartDashboard.putNumber("Encoder thingy filter value", encoderAverageRateFilter.pidGet());
 		SmartDashboard.putNumber("Gyro thingy filter value", gyroFilter.pidGet());
+		SmartDashboard.putBoolean("Sensor value", testSensor.get());
 	}
 
 	/**
@@ -259,48 +276,102 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopPeriodic() {
 		Scheduler.getInstance().run();
+		
+		//Drive
 		johnBotsDriveTrainOfPain.arcadeDrive(-driveController.getY(GenericHID.Hand.kLeft), driveController.getX(GenericHID.Hand.kRight));
 		
+		//Intake
 		if (operateController.getTriggerAxis(GenericHID.Hand.kLeft) > 0.1) {
-			rightGrabber.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft));
-			leftGrabber.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft));
+			rightIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft));
+			leftIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft));
 		}
+		//Outtake
 		else if (operateController.getTriggerAxis(GenericHID.Hand.kRight) > 0.1) {
-			rightGrabber.set(-operateController.getTriggerAxis(GenericHID.Hand.kRight));
-			leftGrabber.set(operateController.getTriggerAxis(GenericHID.Hand.kRight));
+			rightIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kRight));
+			leftIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kRight));
 		}
 		
-		//Intake
-		if (operateController.getY(GenericHID.Hand.kLeft) > 0) {
+		//Move elevator up
+		if (operateController.getBumper(GenericHID.Hand.kLeft)) {
+			PIDElevator.enable();
+			PIDElevator.setSetpoint(ELEVATOR_TOP_VALUE);
+			elevator1.set(PIDElevatorThings.getOutput());
+			elevator2.set(PIDElevatorThings.getOutput());
+		}
+		else if (operateController.getY(GenericHID.Hand.kLeft) > 0.1) {
+			PIDElevator.disable();
 			elevator1.set(operateController.getY(GenericHID.Hand.kLeft));
 			elevator2.set(operateController.getY(GenericHID.Hand.kLeft));
 		}
+		//Move elevator down
+		else if (operateController.getBumper(GenericHID.Hand.kRight)) {
+			PIDElevator.enable();
+			PIDElevator.setSetpoint(ELEVATOR_BOTTOM_VALUE);
+			elevator1.set(PIDElevatorThings.getOutput());
+			elevator2.set(PIDElevatorThings.getOutput());
+		}
+		else if (operateController.getY(GenericHID.Hand.kLeft) < -0.1) {
+			PIDElevator.disable();
+			elevator1.set(operateController.getY(GenericHID.Hand.kLeft));
+			elevator2.set(operateController.getY(GenericHID.Hand.kLeft));
+		}
+		else {
+			PIDElevator.disable();
+			elevator1.set(0);
+			elevator2.set(0);
+		}
 		
-		//Outtake
-		if (operateController.getY(GenericHID.Hand.kRight) > 0) {
+		//Move arm up
+		if (operateController.getPOV() >= 45 && operateController.getPOV() <= 135) {
+			PIDArm.enable();
+			PIDArm.setSetpoint(ARM_TOP_VALUE);
+			arm.set(PIDArmThings.getOutput());
+		}
+		else if (operateController.getY(GenericHID.Hand.kRight) > 0.1) {
+			PIDArm.disable();
 			arm.set(operateController.getY(GenericHID.Hand.kRight));
 		}
 		
-		//Open or close the grasper
-		if (operateController.getAButton()) {
-			grasperDooDad.set(DoubleSolenoid.Value.kForward);
+		//Move arm down
+		if (operateController.getPOV() >= 225 && operateController.getPOV() <= 315) {
+			PIDArm.enable();
+			PIDArm.setSetpoint(ARM_BOTTOM_VALUE);
+			arm.set(PIDArmThings.getOutput());
+			arm.set(PIDArmThings.getOutput());
+		}
+		else if (operateController.getY(GenericHID.Hand.kRight) < -0.1) {
+			PIDArm.disable();
+			arm.set(operateController.getY(GenericHID.Hand.kRight));
 		}
 		else {
-			grasperDooDad.set(DoubleSolenoid.Value.kReverse);
+			PIDArm.disable();
+			arm.set(0);
+		}
+		
+		//Open or close the grasper
+		//Press 'A' to piston
+		if (operateController.getAButton()) {
+			copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kForward);
+		}
+		else {
+			copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
 		}
 		
 		//Operator override on intake up or down
-		if (operateController.getXButton()) {
-			intakeAngle.set(DoubleSolenoid.Value.kReverse);
-		}
-		else if (operateController.getYButton()) {
+		if (operateController.getXButton() || driveController.getXButton()) {
 			intakeAngle.set(DoubleSolenoid.Value.kForward);
 		}
-		else if (driveController.getXButton()) {
+		else {
 			intakeAngle.set(DoubleSolenoid.Value.kReverse);
 		}
-		else if (driveController.getYButton()) {
-			intakeAngle.set(DoubleSolenoid.Value.kForward);
+		
+		//Gear shifting
+		//Press 'A' to piston
+		if (driveController.getAButton()) {
+			shiftyBusiness.set(DoubleSolenoid.Value.kReverse);
+		}
+		else {
+			shiftyBusiness.set(DoubleSolenoid.Value.kForward);
 		}
 	}
 	
