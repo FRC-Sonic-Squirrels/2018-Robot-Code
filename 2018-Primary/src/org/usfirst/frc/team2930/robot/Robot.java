@@ -53,24 +53,23 @@ public class Robot extends TimedRobot {
 	public Point2D.Double currentPoint = new Double();
 	SendableChooser<Boolean> doScaleAuton = new SendableChooser<>();
 	SendableChooser<Boolean> doLongPaths = new SendableChooser<>();
-	public DifferentialDrive johnBotsDriveTrainOfPain;
-	public XboxController driveController, operateController;
 	public AHRS gyro;
-	public LinearDigitalFilter gyroFilter;
 	public Encoder leftEncoder, rightEncoder, leftElevator, armEncoder;
-	public LinearDigitalFilter encoderAverageRateFilter;
 	public Spark leftIntake, rightIntake;
 	public Spark elevator1, elevator2;
+	public Spark rightDrive, leftDrive;
 	public Spark arm;
+	public DoubleSolenoid copyrightedPatentPendingSquirrelThumbTM;
+	public DoubleSolenoid shiftyBusiness;
+	public DoubleSolenoid intakeAngle;
+	public DigitalInput testSensor;
+	public LinearDigitalFilter gyroFilter, encoderAverageRateFilter;
 	public PIDController PIDDrive, PIDRotate, PIDElevator, PIDArm;
 	public SimplePIDOutput PIDDriveOutput, PIDRotateOutput, PIDArmThings, PIDElevatorThings;
 	public EncoderAveragePIDSource encoderAverage;
 	public EncoderAveragePIDSource encoderAverageRate;
-	public DoubleSolenoid copyrightedPatentPendingSquirrelThumbTM;
-	public DoubleSolenoid shiftyBusiness;
-	public DoubleSolenoid intakeAngle;
-	public Spark rightDrive, leftDrive;
-	public DigitalInput testSensor;
+	public DifferentialDrive johnBotsDriveTrainOfPain;
+	public XboxController driveController, operateController;
 	public String gameData;
 	public final double ELEVATOR_TOP_VALUE = 0;
 	public final double ELEVATOR_BOTTOM_VALUE = 0;
@@ -105,9 +104,11 @@ public class Robot extends TimedRobot {
 		doLongPaths.addObject("Cross the field", true);
 		SmartDashboard.putData("Shall we cross the field?", doLongPaths);
 		rightDrive = new Spark(0);
-		leftDrive = new Spark(1);
 		rightDrive.setInverted(true);
+		leftDrive = new Spark(1);
 		leftDrive.setInverted(true);
+		leftIntake = new Spark(2);
+		rightIntake = new Spark(3);
 		elevator1 = new Spark(4);
 		elevator2 = new Spark(5);
 		arm = new Spark(6);
@@ -116,38 +117,36 @@ public class Robot extends TimedRobot {
 		operateController = new XboxController(1);
 		gyro = new AHRS(SPI.Port.kMXP);
 		leftEncoder = new Encoder(/*9, 8*/0, 1);
+		leftEncoder.setDistancePerPulse(0.0366035002);
+		leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		rightEncoder = new Encoder(/*7, 6*/2, 3, true);
+		rightEncoder.setDistancePerPulse(0.0366035002);
+		rightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
+		encoderAverage = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
+		encoderAverageRate = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
+		encoderAverageRate.setPIDSourceType(PIDSourceType.kRate);
 		leftElevator = new Encoder(5, 4);
-		leftIntake = new Spark(2);
-		rightIntake = new Spark(3);
 		testSensor = new DigitalInput(4);
 		copyrightedPatentPendingSquirrelThumbTM = new DoubleSolenoid(0, 1);
 		shiftyBusiness = new DoubleSolenoid(2, 3);
 		intakeAngle = new DoubleSolenoid(4, 5);
-		leftEncoder.setDistancePerPulse(0.0366035002);
-		rightEncoder.setDistancePerPulse(0.0366035002);
-		encoderAverage = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
-		encoderAverageRate = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
-		encoderAverageRate.setPIDSourceType(PIDSourceType.kRate);
 		PIDDriveOutput = new SimplePIDOutput(0, 1);
-		PIDRotateOutput = new SimplePIDOutput(0, 1);
-		PIDArmThings = new SimplePIDOutput(0, 1);
-		PIDElevatorThings = new SimplePIDOutput(0, 1);
-		leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
-		rightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		encoderAverageRateFilter = LinearDigitalFilter.movingAverage(encoderAverageRate, 30);
 		PIDDrive = new PIDController(0.3, 0, 0.2/*0.7*/, encoderAverage, PIDDriveOutput/*, 0.02*/);
 		PIDDrive.setAbsoluteTolerance(12.0);
 		PIDDrive.setOutputRange(-0.9, 0.9);
 		gyroFilter = LinearDigitalFilter.movingAverage(gyro, 50);
+		PIDRotateOutput = new SimplePIDOutput(0, 1);
 		PIDRotate = new PIDController(0.04, 0, 0.12, gyro, PIDRotateOutput/*, 0.02*/);
 		PIDRotate.setInputRange(-180, 180);
 		PIDRotate.setContinuous();
 		PIDRotate.setAbsoluteTolerance(20.0);
 		PIDRotate.setOutputRange(-0.9, 0.9);
+		PIDElevatorThings = new SimplePIDOutput(0, 1);
 		PIDElevator = new PIDController(0, 0, 0, 0, leftElevator, PIDElevatorThings/*, 0.02*/);
 		PIDElevator.setAbsoluteTolerance(0);
 		PIDElevator.setOutputRange(0.9, -0.9);
+		PIDArmThings = new SimplePIDOutput(0, 1);
 		PIDArm = new PIDController(0, 0, 0, 0, armEncoder, PIDArmThings/*, 0.02*/);
 		PIDArm.setAbsoluteTolerance(0);
 		PIDArm.setOutputRange(0.9, -0.9);
@@ -155,17 +154,17 @@ public class Robot extends TimedRobot {
 	
 	@Override
 	public void robotPeriodic() {
-		SmartDashboard.putNumber("Gyro Angle", gyro.getYaw());
-		SmartDashboard.putNumber("Rate of Turning", gyro.getRate());
-		SmartDashboard.putNumber("Gyro Temperature (VERY IMPORTANT)", gyro.getTempC());
 		SmartDashboard.putNumber("Left Distance ", leftEncoder.getDistance());
 		SmartDashboard.putNumber("Right Distance ", rightEncoder.getDistance());
 		SmartDashboard.putNumber("Distance ", average(leftEncoder.getDistance(), rightEncoder.getDistance()));
 		SmartDashboard.putNumber("Speed ", average(leftEncoder.getRate(), rightEncoder.getRate()));
-		SmartDashboard.putString("In memoriam Mitchell", "Pineapple Mentality");
-		SmartDashboard.putNumber("Encoder thingy filter value", encoderAverageRateFilter.pidGet());
-		SmartDashboard.putNumber("Gyro thingy filter value", gyroFilter.pidGet());
+		SmartDashboard.putNumber("Gyro Angle", gyro.getYaw());
+		SmartDashboard.putNumber("Rate of Turning", gyro.getRate());
+		SmartDashboard.putNumber("Gyro Temperature (VERY IMPORTANT)", gyro.getTempC());
+		/*SmartDashboard.putNumber("Encoder thingy filter value", encoderAverageRateFilter.pidGet());
+		SmartDashboard.putNumber("Gyro thingy filter value", gyroFilter.pidGet());*/
 		SmartDashboard.putBoolean("Sensor value", testSensor.get());
+		SmartDashboard.putString("In memoriam Mitchell", "Pineapple Mentality");
 	}
 
 	/**
@@ -280,6 +279,15 @@ public class Robot extends TimedRobot {
 		//Drive
 		johnBotsDriveTrainOfPain.arcadeDrive(-driveController.getY(GenericHID.Hand.kLeft), driveController.getX(GenericHID.Hand.kRight));
 		
+		//Gear shifting
+		//Press 'A' to piston (driver)
+		if (driveController.getAButton()) {
+			shiftyBusiness.set(DoubleSolenoid.Value.kReverse);
+		}
+		else {
+			shiftyBusiness.set(DoubleSolenoid.Value.kForward);
+		}
+		
 		//Intake
 		if (operateController.getTriggerAxis(GenericHID.Hand.kLeft) > 0.1) {
 			rightIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft));
@@ -362,20 +370,11 @@ public class Robot extends TimedRobot {
 		}
 		//Intake up for switch tossing
 		else if (operateController.getBButton() || driveController.getBButton()) {
-			intakeAngle.set();
+			intakeAngle.set(/*Middle setting*/);
 		}
 		//Intake down for cube vacuuming
 		else {
 			intakeAngle.set(DoubleSolenoid.Value.kReverse);
-		}
-		
-		//Gear shifting
-		//Press 'A' to piston (driver)
-		if (driveController.getAButton()) {
-			shiftyBusiness.set(DoubleSolenoid.Value.kReverse);
-		}
-		else {
-			shiftyBusiness.set(DoubleSolenoid.Value.kForward);
 		}
 	}
 	
