@@ -331,9 +331,8 @@ public class Robot extends TimedRobot {
 			PIDArm.disable();
 			arm.set(operateController.getY(GenericHID.Hand.kRight));
 		}
-		
 		//Move arm down
-		if (operateController.getPOV() >= 225 && operateController.getPOV() <= 315) {
+		else if (operateController.getPOV() >= 225 && operateController.getPOV() <= 315) {
 			PIDArm.enable();
 			PIDArm.setSetpoint(ARM_BOTTOM_VALUE);
 			arm.set(PIDArmThings.getOutput());
@@ -349,7 +348,7 @@ public class Robot extends TimedRobot {
 		}
 		
 		//Open or close the grasper
-		//Press 'A' to piston
+		//Press 'A' to piston (operator)
 		if (operateController.getAButton()) {
 			copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kForward);
 		}
@@ -357,16 +356,21 @@ public class Robot extends TimedRobot {
 			copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
 		}
 		
-		//Operator override on intake up or down
+		//Intake up for grabber grabbing
 		if (operateController.getXButton() || driveController.getXButton()) {
 			intakeAngle.set(DoubleSolenoid.Value.kForward);
 		}
+		//Intake up for switch tossing
+		else if (operateController.getBButton() || driveController.getBButton()) {
+			intakeAngle.set();
+		}
+		//Intake down for cube vacuuming
 		else {
 			intakeAngle.set(DoubleSolenoid.Value.kReverse);
 		}
 		
 		//Gear shifting
-		//Press 'A' to piston
+		//Press 'A' to piston (driver)
 		if (driveController.getAButton()) {
 			shiftyBusiness.set(DoubleSolenoid.Value.kReverse);
 		}
