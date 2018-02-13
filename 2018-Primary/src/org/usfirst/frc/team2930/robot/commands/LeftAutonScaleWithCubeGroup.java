@@ -8,9 +8,9 @@ import java.awt.geom.Point2D.Double;
 /**
  *
  */
-public class RightAutonScaleGroup extends CommandGroup {
+public class LeftAutonScaleWithCubeGroup extends CommandGroup {
 
-    public RightAutonScaleGroup(Robot robot) {
+    public LeftAutonScaleWithCubeGroup(Robot robot) {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
@@ -29,10 +29,26 @@ public class RightAutonScaleGroup extends CommandGroup {
         // arm.
     	
     	//In open space
-    	Point2D.Double toPoint = new Double(277.65, 232.99);
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	Point2D.Double toPoint = new Double(46.96, 232.99);
+    	addSequential(new DriveToPointGroup(robot, toPoint));
     	//At scale ready to be placed
-    	toPoint.setLocation(268.80, 284.73);
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	toPoint.setLocation(59.96, 279.99);
+    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	//Back up
+    	toPoint.setLocation(46.96, 232.99);
+    	addSequential(new DriveToPointGroup(robot, toPoint, true));
+    	//Turn to cube
+    	toPoint.setLocation(68.94, 220.14);
+    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	//Grab cube
+    	//UMMMMMMM CODE
+    	//Move forward to place on switch
+    	toPoint.setLocation(107.69, 223.08);
+    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	//Move to switch
+    	toPoint.setLocation(107.69, 216.34);
+    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	//Eject onto switch
+    	//UMMMMMMM CODE
     }
 }

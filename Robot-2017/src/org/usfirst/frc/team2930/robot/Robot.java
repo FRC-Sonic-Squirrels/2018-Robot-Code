@@ -8,10 +8,13 @@
 package org.usfirst.frc.team2930.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -26,7 +29,14 @@ public class Robot extends IterativeRobot {
 	private String m_autoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
 	private DoubleSolenoid GearRelease;
-	private XboxController SolenoidController;
+	private XboxController driveController;
+	leftDrive = new Spark(0);
+	leftDrive.setInverted(true);
+	rightDrive = new Spark(1);
+	rightDrive.setInverted(true);
+	public Spark rightDrive, leftDrive;
+	public DifferentialDrive johnBotsDriveTrainOfPain;
+	
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
@@ -37,7 +47,7 @@ public class Robot extends IterativeRobot {
 		m_chooser.addObject("My Auto", kCustomAuto);
 		SmartDashboard.putData("Auto choices", m_chooser);
 		GearRelease = new DoubleSolenoid(2, 3);
-		SolenoidController = new XboxController(0);
+		driveController = new XboxController(0);
 	}
 
 	/**
@@ -80,14 +90,14 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		if (SolenoidController.getAButton()) {
+		/*if (SolenoidController.getAButton()) {
 			GearRelease.set(DoubleSolenoid.Value.kForward);
 		}
 		else {
 			GearRelease.set(DoubleSolenoid.Value.kReverse);
 		}
-	}
-
+	}*/
+		johnBotsDriveTrainOfPain.arcadeDrive(driveController.getY(GenericHID.Hand.kLeft), driveController.getX(GenericHID.Hand.kRight));
 	/**
 	 * This function is called periodically during test mode.
 	 */

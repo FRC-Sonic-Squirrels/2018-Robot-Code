@@ -1,9 +1,6 @@
 package org.usfirst.frc.team2930.robot.commands;
 
 import org.usfirst.frc.team2930.robot.Robot;
-
-import org.usfirst.frc.team2930.robot.*;
-import org.usfirst.frc.team2930.robot.commands.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
 

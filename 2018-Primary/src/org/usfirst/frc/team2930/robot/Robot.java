@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.PIDSourceType;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.filters.*;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Spark;
@@ -53,6 +54,7 @@ public class Robot extends TimedRobot {
 	public Point2D.Double currentPoint = new Double();
 	SendableChooser<Boolean> doScaleAuton = new SendableChooser<>();
 	SendableChooser<Boolean> doLongPaths = new SendableChooser<>();
+	SendableChooser<Boolean> pickUpExtraCube = new SendableChooser<>();
 	public AHRS gyro;
 	public Encoder leftEncoder, rightEncoder, leftElevator, armEncoder;
 	public Spark leftIntake, rightIntake;
@@ -75,6 +77,8 @@ public class Robot extends TimedRobot {
 	public final double ELEVATOR_BOTTOM_VALUE = 0;
 	public final double ARM_TOP_VALUE = 0;
 	public final double ARM_BOTTOM_VALUE = 0;
+	//PDP.reset(new PowerDistributionPanel(0));
+	//SmartDashboard.PutData(PDP.get());
 	public void encoderReset() {
 		leftEncoder.reset();
 		rightEncoder.reset();
@@ -103,30 +107,30 @@ public class Robot extends TimedRobot {
 		doLongPaths.addDefault("Don't cross the field", false);
 		doLongPaths.addObject("Cross the field", true);
 		SmartDashboard.putData("Shall we cross the field?", doLongPaths);
-		rightDrive = new Spark(0);
-		rightDrive.setInverted(true);
-		leftDrive = new Spark(1);
+		leftDrive = new Spark(0);
 		leftDrive.setInverted(true);
-		leftIntake = new Spark(2);
-		rightIntake = new Spark(3);
-		elevator1 = new Spark(4);
-		elevator2 = new Spark(5);
+		rightDrive = new Spark(1);
+		rightDrive.setInverted(true);
+		rightIntake = new Spark(2);
+		leftIntake = new Spark(3);
+		//elevator1 = new Spark(4);
+		//elevator2 = new Spark(5);
 		arm = new Spark(6);
 		johnBotsDriveTrainOfPain = new DifferentialDrive(leftDrive, rightDrive);
 		driveController = new XboxController(0);
 		operateController = new XboxController(1);
 		gyro = new AHRS(SPI.Port.kMXP);
-		leftEncoder = new Encoder(/*9, 8*/0, 1);
-		leftEncoder.setDistancePerPulse(0.0366035002);
+		leftEncoder = new Encoder(/*0, 1*/9, 8);
+		leftEncoder.setDistancePerPulse(2896.625/120);
 		leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
-		rightEncoder = new Encoder(/*7, 6*/2, 3, true);
-		rightEncoder.setDistancePerPulse(0.0366035002);
+		rightEncoder = new Encoder(/*2, 3*/7, 6, true);
+		rightEncoder.setDistancePerPulse(2896.625/120);
 		rightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		encoderAverage = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		encoderAverageRate = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		encoderAverageRate.setPIDSourceType(PIDSourceType.kRate);
-		leftElevator = new Encoder(5, 4);
-		testSensor = new DigitalInput(4);
+		//leftElevator = new Encoder(5, 4);
+		//testSensor = new DigitalInput(4);
 		copyrightedPatentPendingSquirrelThumbTM = new DoubleSolenoid(0, 1);
 		shiftyBusiness = new DoubleSolenoid(2, 3);
 		intakeAngle = new DoubleSolenoid(4, 5);
@@ -142,14 +146,15 @@ public class Robot extends TimedRobot {
 		PIDRotate.setContinuous();
 		PIDRotate.setAbsoluteTolerance(20.0);
 		PIDRotate.setOutputRange(-0.9, 0.9);
-		PIDElevatorThings = new SimplePIDOutput(0, 1);
-		PIDElevator = new PIDController(0, 0, 0, 0, leftElevator, PIDElevatorThings/*, 0.02*/);
+		/*PIDElevatorThings = new SimplePIDOutput(0, 1);
+		PIDElevator = new PIDController(0, 0, 0, 0, leftElevator, PIDElevatorThings/*, 0.02*//*);
 		PIDElevator.setAbsoluteTolerance(0);
 		PIDElevator.setOutputRange(0.9, -0.9);
 		PIDArmThings = new SimplePIDOutput(0, 1);
-		PIDArm = new PIDController(0, 0, 0, 0, armEncoder, PIDArmThings/*, 0.02*/);
+		PIDArm = new PIDController(0, 0, 0, 0, armEncoder, PIDArmThings/*, 0.02*//*);
 		PIDArm.setAbsoluteTolerance(0);
-		PIDArm.setOutputRange(0.9, -0.9);
+		PIDArm.setOutputRange(0.9, -0.9);*/
+		PowerDistributionPanel PowerDistributionPanel = new PowerDistributionPanel(0);
 	}
 	
 	@Override
@@ -163,7 +168,7 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putNumber("Gyro Temperature (VERY IMPORTANT)", gyro.getTempC());
 		/*SmartDashboard.putNumber("Encoder thingy filter value", encoderAverageRateFilter.pidGet());
 		SmartDashboard.putNumber("Gyro thingy filter value", gyroFilter.pidGet());*/
-		SmartDashboard.putBoolean("Sensor value", testSensor.get());
+		//SmartDashboard.putBoolean("Sensor value", testSensor.get());
 		SmartDashboard.putString("In memoriam Mitchell", "Pineapple Mentality");
 	}
 
@@ -196,45 +201,82 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousInit() {
 		gameData = DriverStation.getInstance().getGameSpecificMessage();
-		//m_autonomousCommand = m_chooser.getSelected();
 		//m_autonomousCommand = new DriveToPointGroup(this, 0, -5, true);
 		//m_autonomousCommand = new RotateToAngleCommand(this, 90);
 		//m_autonomousCommand = new ShapeOfPowerGroup(this);
-		if (startPosition.getSelected().equals(centerStartPoint)) {
-			currentPoint.setLocation(centerStartPoint);
-			m_autonomousCommand = new CenterAutonSwitchGroup(this);
+		if (pickUpExtraCube.getSelected()) {
+			if (startPosition.getSelected().equals(centerStartPoint)) {
+				currentPoint.setLocation(centerStartPoint);
+				m_autonomousCommand = new CenterAutonSwitchWithCubeGroup(this);
+			}
+			else if (startPosition.getSelected().equals(leftStartPoint)) {
+				currentPoint.setLocation(leftStartPoint);
+				if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L') {
+					m_autonomousCommand = new LeftAutonScaleWithCubeGroup(this);
+				}
+				/*else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R' && doLongPaths.getSelected()) {
+					m_autonomousCommand = new LeftAutonOppositeScaleGroup(this);
+				}
+				else if (gameData.charAt(0) == 'L') {
+					m_autonomousCommand = new LeftAutonSwitchGroup(this);
+				}*/
+				else {
+					m_autonomousCommand = new DriveToPointGroup(this, 46.96, 166.89);
+				}
+			}
+			else if (startPosition.getSelected().equals(rightStartPoint)) {
+				currentPoint.setLocation(rightStartPoint);
+				if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R') {
+					m_autonomousCommand = new RightAutonScaleWithCubeGroup(this);
+				}
+				/*else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L' && doLongPaths.getSelected()) {
+					m_autonomousCommand = new RightAutonOppositeScaleGroup(this);
+				}
+				else if (gameData.charAt(0) == 'R') {
+					m_autonomousCommand = new RightAutonSwitchGroup(this);
+				}*/
+				else {
+					m_autonomousCommand = new DriveToPointGroup(this, 277.65, 166.89);
+				}
+			}
 		}
-		else if (startPosition.getSelected().equals(leftStartPoint)) {
-			currentPoint.setLocation(leftStartPoint);
-			if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L') {
-				m_autonomousCommand = new LeftAutonScaleGroup(this);
+		else {
+			if (startPosition.getSelected().equals(centerStartPoint)) {
+				currentPoint.setLocation(centerStartPoint);
+				m_autonomousCommand = new CenterAutonSwitchGroup(this);
 			}
-			else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R' && doLongPaths.getSelected()) {
-				m_autonomousCommand = new LeftAutonOppositeScaleGroup(this);
+			else if (startPosition.getSelected().equals(leftStartPoint)) {
+				currentPoint.setLocation(leftStartPoint);
+				if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L') {
+					m_autonomousCommand = new LeftAutonScaleGroup(this);
+				}
+				else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R' && doLongPaths.getSelected()) {
+					m_autonomousCommand = new LeftAutonOppositeScaleGroup(this);
+				}
+				else if (gameData.charAt(0) == 'L') {
+					m_autonomousCommand = new LeftAutonSwitchGroup(this);
+				}
+				else {
+					m_autonomousCommand = new DriveToPointGroup(this, 46.96, 166.89);
+				}
 			}
-			else if (gameData.charAt(0) == 'L') {
-				m_autonomousCommand = new LeftAutonSwitchGroup(this);
-			}
-			else {
-				m_autonomousCommand = new DriveToPointGroup(this, 46.96, 166.89);
+			else if (startPosition.getSelected().equals(rightStartPoint)) {
+				currentPoint.setLocation(rightStartPoint);
+				if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R') {
+					m_autonomousCommand = new RightAutonScaleGroup(this);
+				}
+				else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L' && doLongPaths.getSelected()) {
+					m_autonomousCommand = new RightAutonOppositeScaleGroup(this);
+				}
+				else if (gameData.charAt(0) == 'R') {
+					m_autonomousCommand = new RightAutonSwitchGroup(this);
+				}
+				else {
+					m_autonomousCommand = new DriveToPointGroup(this, 277.65, 166.89);
+				}
 			}
 		}
-		else if (startPosition.getSelected().equals(rightStartPoint)) {
-			currentPoint.setLocation(rightStartPoint);
-			if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R') {
-				m_autonomousCommand = new RightAutonScaleGroup(this);
-			}
-			else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L' && doLongPaths.getSelected()) {
-				m_autonomousCommand = new RightAutonOppositeScaleGroup(this);
-			}
-			else if (gameData.charAt(0) == 'R') {
-				m_autonomousCommand = new RightAutonSwitchGroup(this);
-			}
-			else {
-				m_autonomousCommand = new DriveToPointGroup(this, 277.65, 166.89);
-			}
-		}
-
+		
 		/*
 		 * String autoSelected = SmartDashboard.getString("Auto Selector",
 		 * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
@@ -277,26 +319,30 @@ public class Robot extends TimedRobot {
 		Scheduler.getInstance().run();
 		
 		//Drive
-		johnBotsDriveTrainOfPain.arcadeDrive(-driveController.getY(GenericHID.Hand.kLeft), driveController.getX(GenericHID.Hand.kRight));
+		johnBotsDriveTrainOfPain.arcadeDrive(driveController.getY(GenericHID.Hand.kLeft), driveController.getX(GenericHID.Hand.kRight));
 		
 		//Gear shifting
 		//Press 'A' to piston (driver)
-		if (driveController.getAButton()) {
-			shiftyBusiness.set(DoubleSolenoid.Value.kReverse);
+		if (driveController.getBumper(GenericHID.Hand.kLeft)) {
+			shiftyBusiness.set(DoubleSolenoid.Value.kForward);
 		}
 		else {
-			shiftyBusiness.set(DoubleSolenoid.Value.kForward);
+			shiftyBusiness.set(DoubleSolenoid.Value.kReverse);
 		}
 		
 		//Intake
 		if (operateController.getTriggerAxis(GenericHID.Hand.kLeft) > 0.1) {
-			rightIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft));
-			leftIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft));
+			rightIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
+			leftIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
 		}
 		//Outtake
 		else if (operateController.getTriggerAxis(GenericHID.Hand.kRight) > 0.1) {
-			rightIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kRight));
-			leftIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kRight));
+			rightIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
+			leftIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
+		}
+		else {
+			rightIntake.set(0);
+			leftIntake.set(0);
 		}
 		
 		//Move elevator up
@@ -366,18 +412,17 @@ public class Robot extends TimedRobot {
 		
 		//Intake up for grabber grabbing
 		if (operateController.getXButton() || driveController.getXButton()) {
-			intakeAngle.set(DoubleSolenoid.Value.kForward);
-		}
-		//Intake up for switch tossing
-		else if (operateController.getBButton() || driveController.getBButton()) {
-			intakeAngle.set(/*Middle setting*/);
-		}
-		//Intake down for cube vacuuming
-		else {
 			intakeAngle.set(DoubleSolenoid.Value.kReverse);
 		}
+		//Intake up for switch tossing
+		/*else if (operateController.getBButton() || driveController.getBButton()) {
+			intakeAngle.set(/*Middle setting*//*);
+		}*/
+		//Intake down for cube vacuuming
+		else {
+			intakeAngle.set(DoubleSolenoid.Value.kForward);
+		}
 	}
-	
 
 	/**
 	 * This function is called periodically during test mode.
