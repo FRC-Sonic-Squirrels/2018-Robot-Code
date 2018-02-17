@@ -34,5 +34,7 @@ public class RightAutonSwitchGroup extends CommandGroup {
     	//Touching switch
     	toPoint.setLocation(258.85, 166.89);
     	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	//Place cube
+    	//UMMMMMMMM CODE
     }
 }

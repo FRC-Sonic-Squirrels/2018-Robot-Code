@@ -34,5 +34,7 @@ public class RightAutonScaleGroup extends CommandGroup {
     	//At scale ready to be placed
     	toPoint.setLocation(268.80, 284.73);
     	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	//Place cube
+    	//UMMMMMMM CODE
     }
 }

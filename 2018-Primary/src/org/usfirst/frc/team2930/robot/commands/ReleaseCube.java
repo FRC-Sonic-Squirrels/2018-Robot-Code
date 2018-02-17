@@ -1,5 +1,6 @@
 package org.usfirst.frc.team2930.robot.commands;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.command.Command;
 
 import org.usfirst.frc.team2930.robot.*;
@@ -7,33 +8,36 @@ import org.usfirst.frc.team2930.robot.*;
 /**
  *
  */
-public class RotateToAngleCommand extends Command {
+public class ReleaseCube extends Command {
 	
-	private Robot thisRobot;
-	private double angle;
+	Robot robot;
+	int wait;
 
-    public RotateToAngleCommand(Robot robot, double toAngle) {
+    public ReleaseCube(Robot robot) {
         // Use requires() here to declare subsystem dependencies
         // eg. requires(chassis);
-    	thisRobot = robot;
-    	angle = toAngle;
+    	this.robot = robot;
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	thisRobot.PIDRotate.reset();
-    	thisRobot.PIDRotate.setSetpoint(angle);
-    	thisRobot.PIDRotate.enable();
+    	
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	thisRobot.johnBotsDriveTrainOfPain.arcadeDrive(0, thisRobot.PIDRotateOutput.getOutput());
+    	robot.copyrightedPatentPendingSquirrelThumbTM.set(Value.kForward);
+    	wait = 0;
+    	while (wait < 100) {
+    		wait++;
+    	}
+    	robot.copyrightedPatentPendingSquirrelThumbTM.set(Value.kReverse);
+    	wait++;
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	if (thisRobot.PIDRotate.onTarget() && Math.abs(thisRobot.gyro.getRate()) < 1.0) {
+    	if (wait == 100) {
     		return true;
     	}
         return false;
@@ -41,7 +45,6 @@ public class RotateToAngleCommand extends Command {
 
     // Called once after isFinished returns true
     protected void end() {
-    	thisRobot.PIDRotate.disable();
     }
 
     // Called when another command which requires one or more of the same

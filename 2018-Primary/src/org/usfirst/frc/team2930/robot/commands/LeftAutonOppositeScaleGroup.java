@@ -28,11 +28,8 @@ public class LeftAutonOppositeScaleGroup extends CommandGroup {
         // a CommandGroup containing them would require both the chassis and the
         // arm.
     	
-    	//Beside switch
-    	Point2D.Double toPoint = new Double(46.96, 166.89);
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
     	//In open space
-    	toPoint.setLocation(46.96, 232.99);
+    	Point2D.Double toPoint = new Double(46.96, 232.99);
     	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
     	//Across the field
     	addSequential(new RightAutonScaleGroup(robot));

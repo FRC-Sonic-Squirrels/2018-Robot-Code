@@ -13,11 +13,11 @@ public class DriveByDistanceCommand extends Command {
 	private double distance;
 	private double angle;
 
-    public DriveByDistanceCommand(Robot robot, double distanceInFeet, double angleInDegrees) {
+    public DriveByDistanceCommand(Robot robot, double distanceInInches, double angleInDegrees) {
         // Use requires() here to declare subsystem dependencies
         // eg. requires(chassis);
     	thisRobot = robot;
-    	distance = distanceInFeet;
+    	distance = distanceInInches;
     	angle = angleInDegrees;
     }
 
@@ -35,13 +35,13 @@ public class DriveByDistanceCommand extends Command {
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
     	thisRobot.johnBotsDriveTrainOfPain.arcadeDrive(
-    			thisRobot.PIDDriveOutput.getOutput(),
+    			-thisRobot.PIDDriveOutput.getOutput(),
     			thisRobot.PIDRotateOutput.getOutput());
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	if (thisRobot.PIDDrive.onTarget() && Math.abs(thisRobot.encoderAverageRateFilter.get()) < 1.0) {
+    	if (thisRobot.PIDDrive.onTarget() && Math.abs(thisRobot.encoderAverageRate.pidGet()) < 1.0) {
     		return true;
     	}
     	return false;

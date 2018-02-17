@@ -7,33 +7,34 @@ import org.usfirst.frc.team2930.robot.*;
 /**
  *
  */
-public class RotateToAngleCommand extends Command {
+public class MoveElevatorToPosition extends Command {
 	
-	private Robot thisRobot;
-	private double angle;
+	Robot robot;
+	double height;
 
-    public RotateToAngleCommand(Robot robot, double toAngle) {
+    public MoveElevatorToPosition(Robot robot, double height) {
         // Use requires() here to declare subsystem dependencies
         // eg. requires(chassis);
-    	thisRobot = robot;
-    	angle = toAngle;
+    	this.robot = robot;
+    	this.height = height;
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	thisRobot.PIDRotate.reset();
-    	thisRobot.PIDRotate.setSetpoint(angle);
-    	thisRobot.PIDRotate.enable();
+    	robot.PIDElevator.reset();
+    	robot.PIDElevator.enable();
+    	robot.PIDElevator.setSetpoint(height);
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	thisRobot.johnBotsDriveTrainOfPain.arcadeDrive(0, thisRobot.PIDRotateOutput.getOutput());
+    	robot.elevator1.set(robot.PIDElevatorOutput.getOutput());
+    	robot.elevator2.set(robot.PIDElevatorOutput.getOutput());
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	if (thisRobot.PIDRotate.onTarget() && Math.abs(thisRobot.gyro.getRate()) < 1.0) {
+    	if (robot.PIDElevator.onTarget()) {
     		return true;
     	}
         return false;
@@ -41,7 +42,7 @@ public class RotateToAngleCommand extends Command {
 
     // Called once after isFinished returns true
     protected void end() {
-    	thisRobot.PIDRotate.disable();
+    	robot.PIDElevator.disable();
     }
 
     // Called when another command which requires one or more of the same

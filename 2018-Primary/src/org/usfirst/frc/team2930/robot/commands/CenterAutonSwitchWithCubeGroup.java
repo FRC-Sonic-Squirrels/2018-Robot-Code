@@ -54,8 +54,6 @@ public class CenterAutonSwitchWithCubeGroup extends CommandGroup {
     		//To switch
     		toPoint.setLocation(110.34, 119.98);
     		addSequential(new DriveToPointGroup(robot, toPoint));
-    		//Eject cube
-    		//UMMMMMMM CODE
     	}
     	else {
     		//Switch angled
@@ -80,8 +78,8 @@ public class CenterAutonSwitchWithCubeGroup extends CommandGroup {
     		//To switch
     		toPoint.setLocation(216.04, 119.98);
     		addSequential(new DriveToPointGroup(robot, toPoint));
-    		//Eject cube
-    		//UMMMMMMM CODE
     	}
+		//Eject cube
+		//UMMMMMMM CODE
     }
 }
