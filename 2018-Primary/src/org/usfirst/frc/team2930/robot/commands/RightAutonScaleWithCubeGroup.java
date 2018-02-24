@@ -9,8 +9,6 @@ import java.awt.geom.Point2D.Double;
  *
  */
 public class RightAutonScaleWithCubeGroup extends CommandGroup {
-
-	private volatile boolean AugustIsSmart = true;
 	
     public RightAutonScaleWithCubeGroup(Robot robot) {
         // Add Commands here:
