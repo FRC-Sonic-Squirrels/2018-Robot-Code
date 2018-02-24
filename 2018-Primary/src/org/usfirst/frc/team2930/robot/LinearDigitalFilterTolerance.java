@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.filters.LinearDigitalFilter;
 
 public class LinearDigitalFilterTolerance implements Tolerance {
 	
+	@SuppressWarnings("unused")
 	private LinearDigitalFilter filter;
 	
 	public LinearDigitalFilterTolerance(LinearDigitalFilter filter) {
