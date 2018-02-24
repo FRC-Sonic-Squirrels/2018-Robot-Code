@@ -88,13 +88,13 @@ public class Robot extends TimedRobot {
 		leftEncoder.reset();
 		rightEncoder.reset();
 	}
-	public void flushBuffers() {
+	private void flushBuffers() {
 		drivePIDOutput.clearValues();
 		rotatePIDOutput.clearValues();
 		elevatorPIDOutput.clearValues();
 		armPIDOutput.clearValues();
 	}
-	public double average(double x, double y) {
+	private double average(double x, double y) {
 		return (x + y) / 2;
 	}
 
