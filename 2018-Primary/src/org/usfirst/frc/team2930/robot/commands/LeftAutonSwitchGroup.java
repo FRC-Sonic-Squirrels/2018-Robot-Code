@@ -35,6 +35,6 @@ public class LeftAutonSwitchGroup extends CommandGroup {
     	toPoint.setLocation(65.60, 166.89);
     	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
     	//Place cube
-    	addSequential(new SetIntakeSpeedCommand(robot, -1));
+    	addSequential(new EjectIntakeCubeGroup(robot));
     }
 }

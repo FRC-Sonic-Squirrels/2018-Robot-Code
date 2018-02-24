@@ -31,19 +31,26 @@ public class LeftAutonScaleWithCubeGroup extends CommandGroup {
     	//In open space
     	Point2D.Double toPoint = new Double(46.96, 232.99);
     	addSequential(new DriveToPointGroup(robot, toPoint));
+    	addParallel(new MoveElevatorToPosition(robot, robot.ELEVATOR_TOP_VALUE));
+    	addParallel(new MoveArmToPosition(robot, robot.ARM_TOP_VALUE));
     	//At scale ready to be placed
     	toPoint.setLocation(59.96, 279.99);
     	addSequential(new DriveToPointGroup(robot, toPoint));
     	//Place on scale
-    	//UMMMMMMM CODE
+    	addSequential(new ManipulateCPPSTTM(robot, true));
+    	addSequential(new WaitCommand(0.25));
+    	addSequential(new ManipulateCPPSTTM(robot, false));
     	//Back up
     	toPoint.setLocation(46.96, 232.99);
     	addSequential(new DriveToPointGroup(robot, toPoint, true));
     	//Turn to cube
     	toPoint.setLocation(68.94, 220.14);
     	addSequential(new DriveToPointGroup(robot, toPoint));
+    	addParallel(new MoveElevatorToPosition(robot, robot.ELEVATOR_BOTTOM_VALUE));
+    	addParallel(new MoveArmToPosition(robot, robot.ARM_BOTTOM_VALUE));
     	//Grab cube
-    	//UMMMMMMM CODE
+    	toPoint.setLocation(toPoint.getX() + 5, toPoint.getY() - 5);
+    	addSequential(new GrabCubeGroup(robot, toPoint));
     	//Move forward to place on switch
     	toPoint.setLocation(107.69, 223.08);
     	addSequential(new DriveToPointGroup(robot, toPoint));
@@ -51,6 +58,6 @@ public class LeftAutonScaleWithCubeGroup extends CommandGroup {
     	toPoint.setLocation(107.69, 216.34);
     	addSequential(new DriveToPointGroup(robot, toPoint));
     	//Eject onto switch
-    	//UMMMMMMM CODE
+    	addSequential(new EjectIntakeCubeGroup(robot));
     }
 }

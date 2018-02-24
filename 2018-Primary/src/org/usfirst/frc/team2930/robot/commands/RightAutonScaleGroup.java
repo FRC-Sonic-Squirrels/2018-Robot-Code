@@ -31,10 +31,19 @@ public class RightAutonScaleGroup extends CommandGroup {
     	//In open space
     	Point2D.Double toPoint = new Double(277.65, 232.99);
     	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	addParallel(new MoveElevatorToPosition(robot, robot.ELEVATOR_TOP_VALUE));
+    	addParallel(new MoveArmToPosition(robot, robot.ARM_TOP_VALUE));
     	//At scale ready to be placed
     	toPoint.setLocation(268.80, 284.73);
     	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
     	//Place cube
-    	//UMMMMMMM CODE
+    	addSequential(new ManipulateCPPSTTM(robot, true));
+    	addSequential(new WaitCommand(0.25));
+    	addSequential(new ManipulateCPPSTTM(robot, false));
+    	//Back up
+    	toPoint.setLocation(277.65, 232.99);
+    	addSequential(new DriveToPointGroup(robot, toPoint, false));
+    	addSequential(new MoveElevatorToPosition(robot, robot.ELEVATOR_BOTTOM_VALUE));
+    	addSequential(new MoveArmToPosition(robot, robot.ARM_BOTTOM_VALUE));
     }
 }

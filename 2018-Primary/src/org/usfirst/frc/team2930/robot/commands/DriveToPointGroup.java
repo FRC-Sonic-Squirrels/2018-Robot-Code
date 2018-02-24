@@ -11,12 +11,15 @@ import edu.wpi.first.wpilibj.command.CommandGroup;
  */
 public class DriveToPointGroup extends CommandGroup {
 	
-	public DriveToPointGroup(Robot robot, Point2D.Double toPoint) {
-		this(robot, toPoint, false);
+	public DriveToPointGroup(Robot robot, double x, double y) {
+		this(robot, x, y, false);
+	}
+	public DriveToPointGroup(Robot robot, double x, double y, boolean isReversed) {
+		this(robot, new Double(x, y), isReversed);
 	}
 	
-	public DriveToPointGroup(Robot robot, double x, double y) {
-		this(robot, new Double(x, y), false);
+	public DriveToPointGroup(Robot robot, Point2D.Double toPoint) {
+		this(robot, toPoint, false);
 	}
 
     public DriveToPointGroup(Robot robot, Point2D.Double toPoint, boolean isReversed) {

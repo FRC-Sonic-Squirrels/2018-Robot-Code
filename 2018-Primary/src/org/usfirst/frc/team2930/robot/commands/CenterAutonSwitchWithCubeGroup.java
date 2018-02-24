@@ -39,13 +39,7 @@ public class CenterAutonSwitchWithCubeGroup extends CommandGroup {
     		toPoint.setLocation(110.34, 119.89);
     		addSequential(new DriveToPointGroup(robot, toPoint));
     		//Eject cube
-        	addSequential(new SetIntakeSpeedCommand(robot, -1));
-        	addSequential(new WaitCommand(1));
-        	addSequential(new SetIntakeSpeedCommand(robot, 0));
-        	addSequential(new MoveArmToPosition(robot, 30));
-        	addSequential(new WaitCommand(0.5));
-        	addSequential(new MoveArmToPosition(robot, 0));
-        	addSequential(new WaitCommand(0.5));
+    		addSequential(new EjectIntakeCubeGroup(robot));
     		//Back up
     		toPoint.setLocation(110.34, 95.75);
     		addSequential(new DriveToPointGroup(robot, toPoint, true));
@@ -53,15 +47,8 @@ public class CenterAutonSwitchWithCubeGroup extends CommandGroup {
     		toPoint.setLocation(126.20, 105.84);
     		addSequential(new DriveToPointGroup(robot, toPoint));
     		//Grab cube
-    		addSequential(new OpenIntakeCommand(robot, true));
-    		addSequential(new AngleIntakeCommand(robot, false));
-    		addSequential(new SetIntakeSpeedCommand(robot, 1));
-    		addSequential(new WaitCommand(0.5));
-    		addSequential(new OpenIntakeCommand(robot, false));
-    		addSequential(new WaitCommand(0.5));
-    		addSequential(new SetIntakeSpeedCommand(robot, 0));
-    		addSequential(new AngleIntakeCommand(robot, true));
-    		addSequential(new WaitCommand(0.25));
+    		toPoint.setLocation(toPoint.getX() + 7, toPoint.getY() + 5);
+    		addSequential(new GrabCubeGroup(robot, toPoint));
     		//Back near switch
     		toPoint.setLocation(110.34, 95.75);
     		addSequential(new DriveToPointGroup(robot, toPoint, true));
@@ -77,13 +64,7 @@ public class CenterAutonSwitchWithCubeGroup extends CommandGroup {
         	toPoint.setLocation(216.04, 119.89);
         	addSequential(new DriveToPointGroup(robot, toPoint));
         	//Eject cube
-        	addSequential(new SetIntakeSpeedCommand(robot, -1));
-        	addSequential(new WaitCommand(1));
-        	addSequential(new SetIntakeSpeedCommand(robot, 0));
-        	addSequential(new MoveArmToPosition(robot, 30));
-        	addSequential(new WaitCommand(0.5));
-        	addSequential(new MoveArmToPosition(robot, 0));
-        	addSequential(new WaitCommand(0.5));
+        	addSequential(new EjectIntakeCubeGroup(robot));
     		//Back up
     		toPoint.setLocation(216.04, 95.75);
     		addSequential(new DriveToPointGroup(robot, toPoint, true));
@@ -91,15 +72,8 @@ public class CenterAutonSwitchWithCubeGroup extends CommandGroup {
     		toPoint.setLocation(196.70, 105.84);
     		addSequential(new DriveToPointGroup(robot, toPoint));
     		//Grab cube
-    		addSequential(new OpenIntakeCommand(robot, true));
-    		addSequential(new AngleIntakeCommand(robot, false));
-    		addSequential(new SetIntakeSpeedCommand(robot, 1));
-    		addSequential(new WaitCommand(1));
-    		addSequential(new OpenIntakeCommand(robot, false));
-    		addSequential(new WaitCommand(1));
-    		addSequential(new SetIntakeSpeedCommand(robot, 0));
-    		addSequential(new AngleIntakeCommand(robot, true));
-    		addSequential(new WaitCommand(0.5));
+    		toPoint.setLocation(toPoint.getX() - 7, toPoint.getY() + 5);
+    		addSequential(new GrabCubeGroup(robot, toPoint));
     		//Back near switch
     		toPoint.setLocation(216.04, 95.75);
     		addSequential(new DriveToPointGroup(robot, toPoint, true));
@@ -108,12 +82,6 @@ public class CenterAutonSwitchWithCubeGroup extends CommandGroup {
     		addSequential(new DriveToPointGroup(robot, toPoint));
     	}
 		//Eject cube
-    	addSequential(new SetIntakeSpeedCommand(robot, -1));
-    	addSequential(new WaitCommand(1));
-    	addSequential(new SetIntakeSpeedCommand(robot, 0));
-    	addSequential(new MoveArmToPosition(robot, 30));
-    	addSequential(new WaitCommand(0.5));
-    	addSequential(new MoveArmToPosition(robot, 0));
-    	addSequential(new WaitCommand(0.5));
+    	addSequential(new EjectIntakeCubeGroup(robot));
     }
 }

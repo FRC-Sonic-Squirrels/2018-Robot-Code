@@ -48,9 +48,6 @@ public class CenterAutonSwitchGroup extends CommandGroup {
         	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
     	}
     	//Place cube
-    	addSequential(new SetIntakeSpeedCommand(robot, -1));
-    	addSequential(new WaitCommand(1));
-    	addSequential(new SetIntakeSpeedCommand(robot, 0));
-    	addSequential(new MoveArmToPosition(robot, 30));
+    	addSequential(new EjectIntakeCubeGroup(robot));
     }
 }
