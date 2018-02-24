@@ -1,46 +1,34 @@
 package org.usfirst.frc.team2930.robot.commands;
 
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.command.Command;
-
-import org.usfirst.frc.team2930.robot.*;
 
 /**
  *
  */
-public class ReleaseCube extends Command {
+public class WaitCommand extends Command {
 	
-	Robot robot;
-	int wait;
+	private double waitTime;
+	private int currentTime;
 
-    public ReleaseCube(Robot robot) {
+    public WaitCommand(double waitTimeInSeconds) {
         // Use requires() here to declare subsystem dependencies
         // eg. requires(chassis);
-    	this.robot = robot;
+    	waitTime = waitTimeInSeconds * 50;
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	
+    	currentTime = 0;
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	robot.copyrightedPatentPendingSquirrelThumbTM.set(Value.kForward);
-    	wait = 0;
-    	while (wait < 100) {
-    		wait++;
-    	}
-    	robot.copyrightedPatentPendingSquirrelThumbTM.set(Value.kReverse);
-    	wait++;
+    	currentTime++;
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	if (wait == 100) {
-    		return true;
-    	}
-        return false;
+    	return (currentTime >= waitTime);
     }
 
     // Called once after isFinished returns true

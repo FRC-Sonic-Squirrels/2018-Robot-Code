@@ -6,15 +6,15 @@ import edu.wpi.first.wpilibj.PIDSourceType;
 
 public class EncoderAveragePIDSource implements PIDSource {
 	
-	Encoder LeftEncoder, RightEncoder;
+	Encoder leftEncoder, rightEncoder;
 	PIDSourceType SourceType;
 	private double average(double x, double y) {
 		return (x + y) / 2;
 	}
 	
 	public EncoderAveragePIDSource(Encoder leftEncoder, Encoder rightEncoder) {
-		RightEncoder = rightEncoder;
-		LeftEncoder = leftEncoder;
+		this.rightEncoder = rightEncoder;
+		this.leftEncoder = leftEncoder;
 		SourceType = PIDSourceType.kDisplacement;
 	}
 	
@@ -28,10 +28,10 @@ public class EncoderAveragePIDSource implements PIDSource {
 	
 	public double pidGet() {
 		if (SourceType == PIDSourceType.kDisplacement) {
-			return average(LeftEncoder.getDistance(), RightEncoder.getDistance());
+			return average(leftEncoder.getDistance(), rightEncoder.getDistance());
 		}
 		else {
-			return average(LeftEncoder.getRate(), RightEncoder.getRate());
+			return average(leftEncoder.getRate(), rightEncoder.getRate());
 		}
 	}
 }

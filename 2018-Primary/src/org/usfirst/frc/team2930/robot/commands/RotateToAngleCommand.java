@@ -21,19 +21,16 @@ public class RotateToAngleCommand extends Command {
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	thisRobot.PIDRotate.reset();
-    	thisRobot.PIDRotate.setSetpoint(angle);
-    	thisRobot.PIDRotate.enable();
+    	thisRobot.rotatePID.setSetpoint(angle);
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	thisRobot.johnBotsDriveTrainOfPain.arcadeDrive(0, thisRobot.PIDRotateOutput.getOutput());
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	if (thisRobot.PIDRotate.onTarget() && Math.abs(thisRobot.gyro.getRate()) < 1.0) {
+    	if (thisRobot.rotatePID.onTarget() && Math.abs(thisRobot.gyro.getRate()) < 1.0) {
     		return true;
     	}
         return false;
@@ -41,7 +38,6 @@ public class RotateToAngleCommand extends Command {
 
     // Called once after isFinished returns true
     protected void end() {
-    	thisRobot.PIDRotate.disable();
     }
 
     // Called when another command which requires one or more of the same

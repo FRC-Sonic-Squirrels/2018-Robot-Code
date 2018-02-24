@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Counter;
 import edu.wpi.first.wpilibj.DigitalInput;
 
 /**
@@ -50,11 +51,14 @@ public class Robot extends TimedRobot {
 	public Point2D.Double leftStartPoint = new Double(46.96, 19.31);
 	public Point2D.Double centerStartPoint = new Double(167.58, 19.31);
 	public Point2D.Double rightStartPoint = new Double(277.65, 19.31);
+	public Point2D.Double specialStartPoint = new Double(46.96, 19.31);
 	public Point2D.Double currentPoint = new Double();
 	SendableChooser<Boolean> doScaleAuton = new SendableChooser<>();
 	SendableChooser<Boolean> doLongPaths = new SendableChooser<>();
 	SendableChooser<Boolean> pickUpExtraCube = new SendableChooser<>();
 	public AHRS gyro;
+	public DigitalInput leftEncoderA, leftEncoderB, rightEncoderA, rightEncoderB, elevatorEncoderA, elevatorEncoderB, armEncoderA, armEncoderB;
+	public Counter leftEncoderCounterA, leftEncoderCounterB, rightEncoderCounterA, rightEncoderCounterB, elevatorEncoderCounterA, elevatorEncoderCounterB, armEncoderCounterA, armEncoderCounterB;
 	public Encoder leftEncoder, rightEncoder, elevatorEncoder, armEncoder;
 	public Spark leftIntake, rightIntake;
 	public Spark elevator1, elevator2;
@@ -63,24 +67,32 @@ public class Robot extends TimedRobot {
 	public DoubleSolenoid copyrightedPatentPendingSquirrelThumbTM;
 	public DoubleSolenoid shiftyBusiness;
 	public DoubleSolenoid intakeAngle;
+	public DoubleSolenoid intakeOpener;
 	public DigitalInput testSensor;
 	public LinearDigitalFilter gyroFilter, encoderAverageRateFilter;
-	public PIDController PIDDrive, PIDRotate, PIDElevator, PIDArm;
-	public SimplePIDOutput PIDDriveOutput, PIDRotateOutput, PIDArmOutput, PIDElevatorOutput;
+	public PIDController drivePID, rotatePID, elevatorPID, armPID;
+	public SimplePIDOutput drivePIDOutput, rotatePIDOutput, armPIDOutput, elevatorPIDOutput;
 	public EncoderAveragePIDSource encoderAverage;
 	public EncoderAveragePIDSource encoderAverageRate;
 	public DifferentialDrive johnBotsDriveTrainOfPain;
 	public XboxController driveController, operateController;
 	public String gameData;
-	public final double ELEVATOR_TOP_VALUE = 0;
-	public final double ELEVATOR_BOTTOM_VALUE = 0;
-	public final double ARM_TOP_VALUE = 0;
+	public boolean isIntakeClosed = true;
+	public boolean isGrasperClosed = true;
+	public double intakeSpeed = 0;
+	public final double ELEVATOR_TOP_VALUE = 20;
+	public final double ELEVATOR_BOTTOM_VALUE = 3;
+	public final double ARM_TOP_VALUE = 90;
 	public final double ARM_BOTTOM_VALUE = 0;
-	//PDP.reset(new PowerDistributionPanel(0));
-	//SmartDashboard.PutData(PDP.get());
-	public void encoderReset() {
+	public void driveEncoderReset() {
 		leftEncoder.reset();
 		rightEncoder.reset();
+	}
+	public void flushBuffers() {
+		drivePIDOutput.clearValues();
+		rotatePIDOutput.clearValues();
+		elevatorPIDOutput.clearValues();
+		armPIDOutput.clearValues();
 	}
 	public double average(double x, double y) {
 		return (x + y) / 2;
@@ -95,7 +107,7 @@ public class Robot extends TimedRobot {
 		//m_oi = new OI();
 		//m_chooser.addDefault("Default Auto", new ExampleCommand());
 		//m_chooser.addObject("My Auto", new MyAutoCommand());
-		startPosition.addDefault("SELECT START POSITION", null);
+		startPosition.addDefault("SELECT START POSITION", specialStartPoint);
 		startPosition.addObject("Center", centerStartPoint);
 		startPosition.addObject("Left", leftStartPoint);
 		startPosition.addObject("Right", rightStartPoint);
@@ -109,6 +121,8 @@ public class Robot extends TimedRobot {
 		pickUpExtraCube.addDefault("Don't grab extra cubes", false);
 		pickUpExtraCube.addDefault("Pick up an extra cube", true);
 		SmartDashboard.putData("Grab an extra cube?", pickUpExtraCube);
+		SmartDashboard.putString("Elevator control type", "Manual");
+		SmartDashboard.putString("Arm control type", "Manual");
 		leftDrive = new Spark(0);
 		leftDrive.setInverted(true);
 		rightDrive = new Spark(1);
@@ -117,51 +131,79 @@ public class Robot extends TimedRobot {
 		leftIntake = new Spark(3);
 		elevator1 = new Spark(4);
 		elevator2 = new Spark(5);
+		elevator2.setInverted(true);
 		arm = new Spark(6);
 		johnBotsDriveTrainOfPain = new DifferentialDrive(leftDrive, rightDrive);
 		driveController = new XboxController(0);
 		operateController = new XboxController(1);
 		gyro = new AHRS(SPI.Port.kMXP);
-		leftEncoder = new Encoder(/*0, 1*/9, 8);
+		leftEncoderA = new DigitalInput(9);
+		leftEncoderB = new DigitalInput(8);
+		leftEncoderCounterA = new Counter(leftEncoderA);
+		leftEncoderCounterA.setMaxPeriod(0.5);
+		leftEncoderCounterB = new Counter(leftEncoderB);
+		leftEncoderCounterB.setMaxPeriod(0.5);
+		leftEncoder = new Encoder(leftEncoderA, leftEncoderB);
 		leftEncoder.setDistancePerPulse(1.0/24.0);
 		leftEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
-		rightEncoder = new Encoder(/*2, 3*/7, 6, true);
+		rightEncoderA = new DigitalInput(7);
+		rightEncoderB = new DigitalInput(6);
+		rightEncoderCounterA = new Counter(rightEncoderA);
+		rightEncoderCounterA.setMaxPeriod(0.5);
+		rightEncoderCounterB = new Counter(rightEncoderB);
+		rightEncoderCounterB.setMaxPeriod(0.5);
+		rightEncoder = new Encoder(rightEncoderA, rightEncoderB, true);
 		rightEncoder.setDistancePerPulse(1.0/24.0);
 		rightEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
-		elevatorEncoder = new Encoder(0, 1);
-		//elevatorEncoder.setDistancePerPulse(/*GENERICNUMBER43*/);
+		elevatorEncoderA = new DigitalInput(0);
+		elevatorEncoderB = new DigitalInput(1);
+		elevatorEncoderCounterA = new Counter(elevatorEncoderA);
+		elevatorEncoderCounterA.setMaxPeriod(0.5);
+		elevatorEncoderCounterB = new Counter(elevatorEncoderB);
+		elevatorEncoderCounterB.setMaxPeriod(0.5);
+		elevatorEncoder = new Encoder(elevatorEncoderA, elevatorEncoderB);
+		elevatorEncoder.setDistancePerPulse(30.75 / 645.0);
 		elevatorEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
-		armEncoder = new Encoder(2, 3);
-		//armEncoder.setDistancePerPulse(/*GENERICNUMBER44*/);
+		elevatorEncoder.setMaxPeriod(0.5);
+		armEncoderA = new DigitalInput(2);
+		armEncoderB = new DigitalInput(3);
+		armEncoderCounterA = new Counter(armEncoderA);
+		armEncoderCounterA.setMaxPeriod(0.5);
+		armEncoderCounterB = new Counter(armEncoderB);
+		armEncoderCounterB.setMaxPeriod(0.5);
+		armEncoder = new Encoder(armEncoderA, armEncoderB);
+		armEncoder.setDistancePerPulse(90 / 30.75);
 		armEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
+		armEncoder.setMaxPeriod(0.5);
 		encoderAverage = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		encoderAverageRate = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		encoderAverageRate.setPIDSourceType(PIDSourceType.kRate);
 		//leftElevator = new Encoder(5, 4);
-		//testSensor = new DigitalInput(4);
-		copyrightedPatentPendingSquirrelThumbTM = new DoubleSolenoid(0, 1);
-		shiftyBusiness = new DoubleSolenoid(2, 3);
-		intakeAngle = new DoubleSolenoid(4, 5);
-		PIDDriveOutput = new SimplePIDOutput(0, 1);
+		//testSensor = =new DigitalInput(4);
+		intakeOpener = new DoubleSolenoid(0, 1);
+		copyrightedPatentPendingSquirrelThumbTM = new DoubleSolenoid(2, 3);
+		shiftyBusiness = new DoubleSolenoid(4, 5);
+		intakeAngle = new DoubleSolenoid(6, 7);
+		drivePIDOutput = new EncoderBasedPIDOutput(0, 5, 0.5, rightEncoderCounterA, rightEncoderCounterB, leftEncoderCounterA, leftEncoderCounterB);
 		encoderAverageRateFilter = LinearDigitalFilter.movingAverage(encoderAverageRate, 30);
-		PIDDrive = new PIDController(0.3, 0, 0.2, encoderAverage, PIDDriveOutput/*, 0.02*/);
-		PIDDrive.setAbsoluteTolerance(3.0);
-		PIDDrive.setOutputRange(-0.9, 0.9);
+		drivePID = new PIDController(0.3, 0, 0.2, encoderAverage, drivePIDOutput/*, 0.02*/);
+		drivePID.setAbsoluteTolerance(6.0);
+		//PIDDrive.setOutputRange(-0.9, 0.9);
 		gyroFilter = LinearDigitalFilter.movingAverage(gyro, 50);
-		PIDRotateOutput = new SimplePIDOutput(0, 1);
-		PIDRotate = new PIDController(0.04, 0, 0.12, gyro, PIDRotateOutput/*, 0.02*/);
-		PIDRotate.setInputRange(-180, 180);
-		PIDRotate.setContinuous();
-		PIDRotate.setAbsoluteTolerance(10.0);
-		PIDRotate.setOutputRange(-0.9, 0.9);
-		PIDElevatorOutput = new SimplePIDOutput(0, 1);
-		PIDElevator = new PIDController(0, 0, 0, 0, elevatorEncoder, PIDElevatorOutput/*, 0.02*/);
-		PIDElevator.setAbsoluteTolerance(0);
-		PIDElevator.setOutputRange(-0.9, 0.9);
-		PIDArmOutput = new SimplePIDOutput(0, 1);
-		PIDArm = new PIDController(0, 0, 0, 0, armEncoder, PIDArmOutput/*, 0.02*/);
-		PIDArm.setAbsoluteTolerance(0);
-		PIDArm.setOutputRange(-0.9, 0.9);
+		rotatePIDOutput = new SimplePIDOutput(0, 1);
+		rotatePID = new PIDController(0.06, 0, 0.12, gyro, rotatePIDOutput/*, 0.02*/);
+		rotatePID.setInputRange(-180, 180);
+		rotatePID.setContinuous();
+		rotatePID.setAbsoluteTolerance(10.0);
+		//PIDRotate.setOutputRange(-0.9, 0.9);
+		elevatorPIDOutput = new EncoderBasedPIDOutput(0, 5, 0.5, elevatorEncoderCounterA, elevatorEncoderCounterB);
+		elevatorPID = new PIDController(0.25, 0, 0, 0, elevatorEncoder, elevatorPIDOutput/*, 0.02*/);
+		elevatorPID.setAbsoluteTolerance(0);
+		elevatorPID.setOutputRange(-0.5, 0.5);
+		armPIDOutput = new EncoderBasedPIDOutput(0, 5, 0.5, armEncoderCounterA, armEncoderCounterB);
+		armPID = new PIDController(0.125, 0, 0, 0, armEncoder, armPIDOutput/*, 0.02*/);
+		armPID.setAbsoluteTolerance(10);
+		armPID.setOutputRange(-0.5, 0.5);
 		@SuppressWarnings("unused")
 		PowerDistributionPanel PowerDistributionPanel = new PowerDistributionPanel(0);
 	}
@@ -178,6 +220,18 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putString("In memoriam Mitchell", "Pineapple Mentality");
 		SmartDashboard.putNumber("Elevator height", elevatorEncoder.getDistance());
 		SmartDashboard.putNumber("Arm height", armEncoder.getDistance());
+		if (elevatorEncoder.getStopped()) {
+			SmartDashboard.putString("Elevator control type", "Manual");	
+		}
+		else {
+			SmartDashboard.putString("Elevator control type", "Automatic");
+		}
+		if (armEncoder.getStopped()) {
+			SmartDashboard.putString("Arm control type", "Manual");
+		}
+		else {
+			SmartDashboard.putString("Arm control type", "Automatic");
+		}
 	}
 
 	/**
@@ -213,6 +267,9 @@ public class Robot extends TimedRobot {
 		//m_autonomousCommand = new DriveToPointGroup(this, 0, 120);
 		//m_autonomousCommand = new RotateToAngleCommand(this, 90);
 		//m_autonomousCommand = new ShapeOfPowerGroup(this);
+		if (startPosition.getSelected().equals(specialStartPoint)) {
+			m_autonomousCommand = new DriveToPointGroup(this, 46.96, 166.89);
+		}
 		if (pickUpExtraCube.getSelected()) {
 			if (startPosition.getSelected().equals(centerStartPoint)) {
 				currentPoint.setLocation(centerStartPoint);
@@ -292,13 +349,26 @@ public class Robot extends TimedRobot {
 		 * = new MyAutoCommand(); break; case "Default Auto": default:
 		 * autonomousCommand = new ExampleCommand(); break; }
 		 */
-
+		
 		// schedule the autonomous command (example)
 		if (m_autonomousCommand != null) {
 			m_autonomousCommand.start();
 		}
+		//copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kForward);
+		//intakeOpener.set(DoubleSolenoid.Value.kForward);
+		elevatorEncoder.reset();
+		armEncoder.reset();
 		gyro.reset();
-		encoderReset();
+		driveEncoderReset();
+		flushBuffers();
+		drivePID.enable();
+		drivePID.setSetpoint(0);
+		rotatePID.enable();
+		rotatePID.setSetpoint(0);
+		elevatorPID.enable();
+		elevatorPID.setSetpoint(0);
+		armPID.enable();
+		armPID.setSetpoint(0);
 	}
 
 	/**
@@ -308,6 +378,12 @@ public class Robot extends TimedRobot {
 	public void autonomousPeriodic() {
 		shiftyBusiness.set(DoubleSolenoid.Value.kForward);
 		Scheduler.getInstance().run();
+		johnBotsDriveTrainOfPain.arcadeDrive(-drivePIDOutput.getOutput(), rotatePIDOutput.getOutput());
+		elevator1.set(-elevatorPIDOutput.getOutput());
+		elevator2.set(-elevatorPIDOutput.getOutput());
+		arm.set(-armPIDOutput.getOutput());
+    	rightIntake.set(intakeSpeed);
+    	leftIntake.set(-intakeSpeed);
 	}
 
 	@Override
@@ -319,6 +395,12 @@ public class Robot extends TimedRobot {
 		if (m_autonomousCommand != null) {
 			m_autonomousCommand.cancel();
 		}
+		copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kForward);
+		intakeOpener.set(DoubleSolenoid.Value.kForward);
+		drivePID.disable();
+		rotatePID.disable();
+		elevatorPID.disable();
+		armPID.disable();
 	}
 
 	/**
@@ -334,21 +416,21 @@ public class Robot extends TimedRobot {
 		//Gear shifting
 		//Press 'A' left bumper to piston (driver)
 		if (driveController.getBumper(GenericHID.Hand.kLeft)) {
-			shiftyBusiness.set(DoubleSolenoid.Value.kForward);
+			shiftyBusiness.set(DoubleSolenoid.Value.kReverse);
 		}
 		else {
-			shiftyBusiness.set(DoubleSolenoid.Value.kReverse);
+			shiftyBusiness.set(DoubleSolenoid.Value.kForward);
 		}
 		
 		//Intake
 		if (operateController.getTriggerAxis(GenericHID.Hand.kLeft) > 0.1) {
-			rightIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
-			leftIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
+			rightIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
+			leftIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
 		}
 		//Outtake
 		else if (operateController.getTriggerAxis(GenericHID.Hand.kRight) > 0.1) {
-			rightIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
-			leftIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
+			rightIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
+			leftIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
 		}
 		else {
 			rightIntake.set(0);
@@ -356,64 +438,68 @@ public class Robot extends TimedRobot {
 		}
 		
 		//Move elevator up
-		if (operateController.getBumper(GenericHID.Hand.kLeft)) {
-			PIDElevator.enable();
-			PIDElevator.setSetpoint(ELEVATOR_TOP_VALUE);
-			elevator1.set(PIDElevatorOutput.getOutput());
-			elevator2.set(PIDElevatorOutput.getOutput());
+		if (operateController.getBumper(GenericHID.Hand.kRight)) {
+			elevatorPID.enable();
+			elevatorPID.setSetpoint(ELEVATOR_TOP_VALUE);
+			elevator1.set(-elevatorPIDOutput.getOutput());
+			elevator2.set(-elevatorPIDOutput.getOutput());
 		}
-		else if (operateController.getY(GenericHID.Hand.kLeft) > 0.1) {
-			PIDElevator.disable();
-			elevator1.set(operateController.getY(GenericHID.Hand.kLeft));
-			elevator2.set(operateController.getY(GenericHID.Hand.kLeft));
+		else if (operateController.getY(GenericHID.Hand.kRight) > 0.1) {
+			elevatorPID.disable();
+			elevator1.set(operateController.getY(GenericHID.Hand.kRight));
+			elevator2.set(operateController.getY(GenericHID.Hand.kRight));
 		}
 		//Move elevator down
-		else if (operateController.getBumper(GenericHID.Hand.kRight)) {
-			PIDElevator.enable();
-			PIDElevator.setSetpoint(ELEVATOR_BOTTOM_VALUE);
-			elevator1.set(PIDElevatorOutput.getOutput());
-			elevator2.set(PIDElevatorOutput.getOutput());
+		else if (operateController.getBumper(GenericHID.Hand.kLeft)) {
+			elevatorPID.enable();
+			elevatorPID.setSetpoint(ELEVATOR_BOTTOM_VALUE);
+			elevator1.set(-elevatorPIDOutput.getOutput());
+			elevator2.set(-elevatorPIDOutput.getOutput());
 		}
-		else if (operateController.getY(GenericHID.Hand.kLeft) < -0.1) {
-			PIDElevator.disable();
-			elevator1.set(operateController.getY(GenericHID.Hand.kLeft));
-			elevator2.set(operateController.getY(GenericHID.Hand.kLeft));
+		else if (operateController.getY(GenericHID.Hand.kRight) < -0.1) {
+			elevatorPID.disable();
+			elevator1.set(operateController.getY(GenericHID.Hand.kRight));
+			elevator2.set(operateController.getY(GenericHID.Hand.kRight));
 		}
 		else {
-			PIDElevator.disable();
+			elevatorPID.disable();
 			elevator1.set(0);
 			elevator2.set(0);
 		}
 		
-		//Move arm up
-		if (operateController.getPOV() >= 45 && operateController.getPOV() <= 135) {
-			PIDArm.enable();
-			PIDArm.setSetpoint(ARM_TOP_VALUE);
-			arm.set(PIDArmOutput.getOutput());
-		}
-		else if (operateController.getY(GenericHID.Hand.kRight) > 0.1) {
-			PIDArm.disable();
-			arm.set(operateController.getY(GenericHID.Hand.kRight));
-		}
-		//Move arm down
-		else if (operateController.getPOV() >= 225 && operateController.getPOV() <= 315) {
-			PIDArm.enable();
-			PIDArm.setSetpoint(ARM_BOTTOM_VALUE);
-			arm.set(PIDArmOutput.getOutput());
-			arm.set(PIDArmOutput.getOutput());
-		}
-		else if (operateController.getY(GenericHID.Hand.kRight) < -0.1) {
-			PIDArm.disable();
-			arm.set(operateController.getY(GenericHID.Hand.kRight));
-		}
-		else {
-			PIDArm.disable();
-			arm.set(0);
+		if (isGrasperClosed) {
+			//Move arm up
+			if (operateController.getPOV() >= 45 && operateController.getPOV() <= 135) {
+				armPID.enable();
+				armPID.setSetpoint(ARM_TOP_VALUE);
+				arm.set(-armPIDOutput.getOutput());
+			}
+			else if (operateController.getY(GenericHID.Hand.kLeft) > 0.1) {
+				armPID.disable();
+				arm.set(operateController.getY(GenericHID.Hand.kLeft));
+			}
+			//Move arm down
+			else if (operateController.getPOV() >= 225 && operateController.getPOV() <= 315) {
+				armPID.enable();
+				armPID.setSetpoint(ARM_BOTTOM_VALUE);
+				arm.set(-armPIDOutput.getOutput());
+			}
+			else if (operateController.getY(GenericHID.Hand.kLeft) < -0.1) {
+				armPID.disable();
+				arm.set(operateController.getY(GenericHID.Hand.kLeft));
+			}
+			else {
+				armPID.disable();
+				arm.set(0);
+			}
 		}
 		
 		//Open or close the grasper
 		//Press 'A' to piston (operator)
-		if (operateController.getAButton()) {
+		if (operateController.getBButtonPressed()) {
+			isGrasperClosed = !isGrasperClosed;
+		}
+		if (isGrasperClosed) {
 			copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kForward);
 		}
 		else {
@@ -421,16 +507,23 @@ public class Robot extends TimedRobot {
 		}
 		
 		//Intake up for grabber grabbing
-		if (operateController.getXButton() || driveController.getXButton()) {
+		if (operateController.getXButton()) {
 			intakeAngle.set(DoubleSolenoid.Value.kReverse);
 		}
-		//Intake up for switch tossing
-		/*else if (operateController.getBButton() || driveController.getBButton()) {
-			intakeAngle.set(/*Middle setting*//*);
-		}*/
 		//Intake down for cube vacuuming
 		else {
 			intakeAngle.set(DoubleSolenoid.Value.kForward);
+		}
+		
+		//Intake open or closed for cube grabbing
+		if (operateController.getAButtonPressed()) {
+			isIntakeClosed = !isIntakeClosed;
+		}
+		if (isIntakeClosed) {
+			intakeOpener.set(DoubleSolenoid.Value.kReverse);
+		}
+		else {
+			intakeOpener.set(DoubleSolenoid.Value.kForward);
 		}
 	}
 

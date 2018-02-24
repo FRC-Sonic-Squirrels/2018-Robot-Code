@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -25,7 +26,7 @@ import org.usfirst.frc.team2930.robot.EncoderAveragePIDSource;
  * creating this project, you must also update the manifest file in the resource
  * directory.
  */
-
+@SuppressWarnings("deprecation")
 public class Robot extends IterativeRobot {
 	public static final double HIGHSPEEDTHRESHOLD = 5.75;
 	public static final double LOWSPEEDTHRESHOLD = 4.25;	
@@ -132,6 +133,7 @@ public class Robot extends IterativeRobot {
 		GearCatcher = new DoubleSolenoid(4, 5);
 		AllTheDrive = new RobotDrive(1,0);
 		Climber = new Spark(4);
+		CameraServer.getInstance().startAutomaticCapture();
 		Climber2 = new Spark(2);
 		LeftEncoder = new Encoder(0,1,false);
 		RightEncoder = new Encoder(2,3,true);
@@ -589,12 +591,12 @@ public class Robot extends IterativeRobot {
 
 		//Shift if right bumper is pressed
 		if (DriveController.getBumper(GenericHID.Hand.kRight)) {
-			Shifter.set(DoubleSolenoid.Value.kReverse);
-			IsHighGear = false;
-		}
-		else {
 			Shifter.set(DoubleSolenoid.Value.kForward);
 			IsHighGear = true;
+		}
+		else {
+			Shifter.set(DoubleSolenoid.Value.kReverse);
+			IsHighGear = false;
 		}
 		
 		//Rumble if vision

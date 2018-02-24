@@ -1,16 +1,13 @@
 package org.usfirst.frc.team2930.robot.commands;
 
 import edu.wpi.first.wpilibj.command.CommandGroup;
-import org.usfirst.frc.team2930.robot.Robot;
-import java.awt.geom.Point2D;
-import java.awt.geom.Point2D.Double;
 
 /**
  *
  */
-public class LeftAutonSwitchGroup extends CommandGroup {
+public class GrabCubeGroup extends CommandGroup {
 
-    public LeftAutonSwitchGroup(Robot robot) {
+    public GrabCubeGroup() {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
@@ -27,14 +24,5 @@ public class LeftAutonSwitchGroup extends CommandGroup {
         // e.g. if Command1 requires chassis, and Command2 requires arm,
         // a CommandGroup containing them would require both the chassis and the
         // arm.
-    	
-    	//Beside switch
-    	Point2D.Double toPoint = new Double(46.96, 166.89);
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
-    	//Touching switch
-    	toPoint.setLocation(65.60, 166.89);
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
-    	//Place cube
-    	addSequential(new SetIntakeSpeedCommand(robot, -1));
     }
 }

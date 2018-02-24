@@ -4,8 +4,9 @@ import edu.wpi.first.wpilibj.PIDOutput;
 
 public class SimplePIDOutput implements PIDOutput {
 	
-	private double[] output;
-	private int count;
+	protected double[] output;
+	private double initialOut;
+	protected int count;
 	
 	public SimplePIDOutput(double initialOut, int bufferSize) {
 		output = new double[bufferSize];
@@ -13,6 +14,7 @@ public class SimplePIDOutput implements PIDOutput {
 			output[i] = initialOut;
 		}
 		count = 0;
+		this.initialOut = initialOut;
 	}
 	
 	public void pidWrite(double value) {
@@ -28,5 +30,11 @@ public class SimplePIDOutput implements PIDOutput {
 		}
 		rval /= output.length;
 		return rval;
+	}
+	
+	public void clearValues() {
+		for (int i = 0; i < output.length; i++) {
+			output[i] = initialOut;
+		}
 	}
 }

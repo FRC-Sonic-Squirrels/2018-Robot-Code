@@ -1,39 +1,41 @@
 package org.usfirst.frc.team2930.robot.commands;
 
 import edu.wpi.first.wpilibj.command.Command;
-
-import org.usfirst.frc.team2930.robot.*;
+import org.usfirst.frc.team2930.robot.Robot;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 /**
  *
  */
-public class MoveElevatorToPosition extends Command {
+public class AngleIntakeCommand extends Command {
 	
-	Robot robot;
-	double height;
+	private Robot robot;
+	private boolean up;
 
-    public MoveElevatorToPosition(Robot robot, double height) {
+    public AngleIntakeCommand(Robot robot, boolean up) {
         // Use requires() here to declare subsystem dependencies
         // eg. requires(chassis);
     	this.robot = robot;
-    	this.height = height;
+    	this.up = up;
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	robot.elevatorPID.setSetpoint(height);
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
+    	if (up) {
+    		robot.intakeAngle.set(DoubleSolenoid.Value.kForward);
+    	}
+    	else {
+    		robot.intakeAngle.set(DoubleSolenoid.Value.kReverse);
+    	}
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	if (robot.elevatorPID.onTarget()) {
-    		return true;
-    	}
-        return false;
+        return true;
     }
 
     // Called once after isFinished returns true

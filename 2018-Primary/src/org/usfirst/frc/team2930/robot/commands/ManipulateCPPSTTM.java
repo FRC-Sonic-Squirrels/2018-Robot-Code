@@ -1,5 +1,6 @@
 package org.usfirst.frc.team2930.robot.commands;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.command.Command;
 
 import org.usfirst.frc.team2930.robot.*;
@@ -7,21 +8,26 @@ import org.usfirst.frc.team2930.robot.*;
 /**
  *
  */
-public class MoveElevatorToPosition extends Command {
+public class ManipulateCPPSTTM extends Command {
 	
-	Robot robot;
-	double height;
+	private Robot robot;
+	private boolean open;
 
-    public MoveElevatorToPosition(Robot robot, double height) {
+    public ManipulateCPPSTTM(Robot robot, boolean open) {
         // Use requires() here to declare subsystem dependencies
         // eg. requires(chassis);
     	this.robot = robot;
-    	this.height = height;
+    	this.open = open;
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	robot.elevatorPID.setSetpoint(height);
+    	if (open) {
+    		robot.copyrightedPatentPendingSquirrelThumbTM.set(Value.kForward);
+    	}
+    	else {
+    		robot.copyrightedPatentPendingSquirrelThumbTM.set(Value.kReverse);
+    	}
     }
 
     // Called repeatedly when this Command is scheduled to run
@@ -30,10 +36,7 @@ public class MoveElevatorToPosition extends Command {
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	if (robot.elevatorPID.onTarget()) {
-    		return true;
-    	}
-        return false;
+        return true;
     }
 
     // Called once after isFinished returns true

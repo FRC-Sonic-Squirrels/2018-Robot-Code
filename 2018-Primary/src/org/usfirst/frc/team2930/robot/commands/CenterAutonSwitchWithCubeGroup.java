@@ -39,18 +39,32 @@ public class CenterAutonSwitchWithCubeGroup extends CommandGroup {
     		toPoint.setLocation(110.34, 119.89);
     		addSequential(new DriveToPointGroup(robot, toPoint));
     		//Eject cube
-    		//UMMMMMMM CODE
+        	addSequential(new SetIntakeSpeedCommand(robot, -1));
+        	addSequential(new WaitCommand(1));
+        	addSequential(new SetIntakeSpeedCommand(robot, 0));
+        	addSequential(new MoveArmToPosition(robot, 30));
+        	addSequential(new WaitCommand(0.5));
+        	addSequential(new MoveArmToPosition(robot, 0));
+        	addSequential(new WaitCommand(0.5));
     		//Back up
     		toPoint.setLocation(110.34, 95.75);
-    		addSequential(new DriveToPointGroup(robot, toPoint));
+    		addSequential(new DriveToPointGroup(robot, toPoint, true));
     		//In front of cube
     		toPoint.setLocation(126.20, 105.84);
     		addSequential(new DriveToPointGroup(robot, toPoint));
     		//Grab cube
-    		//UMMMMMMM CODE
+    		addSequential(new OpenIntakeCommand(robot, true));
+    		addSequential(new AngleIntakeCommand(robot, false));
+    		addSequential(new SetIntakeSpeedCommand(robot, 1));
+    		addSequential(new WaitCommand(0.5));
+    		addSequential(new OpenIntakeCommand(robot, false));
+    		addSequential(new WaitCommand(0.5));
+    		addSequential(new SetIntakeSpeedCommand(robot, 0));
+    		addSequential(new AngleIntakeCommand(robot, true));
+    		addSequential(new WaitCommand(0.25));
     		//Back near switch
     		toPoint.setLocation(110.34, 95.75);
-    		addSequential(new DriveToPointGroup(robot, toPoint));
+    		addSequential(new DriveToPointGroup(robot, toPoint, true));
     		//To switch
     		toPoint.setLocation(110.34, 119.98);
     		addSequential(new DriveToPointGroup(robot, toPoint));
@@ -63,23 +77,43 @@ public class CenterAutonSwitchWithCubeGroup extends CommandGroup {
         	toPoint.setLocation(216.04, 119.89);
         	addSequential(new DriveToPointGroup(robot, toPoint));
         	//Eject cube
-    		//UMMMMMMM CODE
+        	addSequential(new SetIntakeSpeedCommand(robot, -1));
+        	addSequential(new WaitCommand(1));
+        	addSequential(new SetIntakeSpeedCommand(robot, 0));
+        	addSequential(new MoveArmToPosition(robot, 30));
+        	addSequential(new WaitCommand(0.5));
+        	addSequential(new MoveArmToPosition(robot, 0));
+        	addSequential(new WaitCommand(0.5));
     		//Back up
     		toPoint.setLocation(216.04, 95.75);
-    		addSequential(new DriveToPointGroup(robot, toPoint));
+    		addSequential(new DriveToPointGroup(robot, toPoint, true));
     		//In front of cube
     		toPoint.setLocation(196.70, 105.84);
     		addSequential(new DriveToPointGroup(robot, toPoint));
     		//Grab cube
-    		//UMMMMMMM CODE
+    		addSequential(new OpenIntakeCommand(robot, true));
+    		addSequential(new AngleIntakeCommand(robot, false));
+    		addSequential(new SetIntakeSpeedCommand(robot, 1));
+    		addSequential(new WaitCommand(1));
+    		addSequential(new OpenIntakeCommand(robot, false));
+    		addSequential(new WaitCommand(1));
+    		addSequential(new SetIntakeSpeedCommand(robot, 0));
+    		addSequential(new AngleIntakeCommand(robot, true));
+    		addSequential(new WaitCommand(0.5));
     		//Back near switch
     		toPoint.setLocation(216.04, 95.75);
-    		addSequential(new DriveToPointGroup(robot, toPoint));
+    		addSequential(new DriveToPointGroup(robot, toPoint, true));
     		//To switch
     		toPoint.setLocation(216.04, 119.98);
     		addSequential(new DriveToPointGroup(robot, toPoint));
     	}
 		//Eject cube
-		//UMMMMMMM CODE
+    	addSequential(new SetIntakeSpeedCommand(robot, -1));
+    	addSequential(new WaitCommand(1));
+    	addSequential(new SetIntakeSpeedCommand(robot, 0));
+    	addSequential(new MoveArmToPosition(robot, 30));
+    	addSequential(new WaitCommand(0.5));
+    	addSequential(new MoveArmToPosition(robot, 0));
+    	addSequential(new WaitCommand(0.5));
     }
 }
