@@ -78,12 +78,20 @@ public class Robot extends TimedRobot {
 	public XboxController driveController, operateController;
 	public String gameData;
 	public boolean isIntakeClosed = true;
+	public boolean isIntakeUp = false;
 	public boolean isGrasperClosed = true;
+	public boolean macroMode = true;
 	public double intakeSpeed = 0;
-	public final double ELEVATOR_TOP_VALUE = 20;
-	public final double ELEVATOR_BOTTOM_VALUE = 3;
-	public final double ARM_TOP_VALUE = 90;
+	public final double ELEVATOR_TOP_VALUE = 30;
+	public final double ELEVATOR_PLACING_VALUE = 20;
+	public final double ELEVATOR_BOTTOM_VALUE = 1;
+	public final double ARM_TOP_VALUE = 120;
+	public final double ARM_PLACING_VALUE = 90;
 	public final double ARM_BOTTOM_VALUE = 0;
+	int grabPhase = 3;
+	int armPhase = 2;
+	int ejectPhase = 2;
+	int count = 0;
 	public void driveEncoderReset() {
 		leftEncoder.reset();
 		rightEncoder.reset();
@@ -179,7 +187,6 @@ public class Robot extends TimedRobot {
 		encoderAverageRate = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		encoderAverageRate.setPIDSourceType(PIDSourceType.kRate);
 		//leftElevator = new Encoder(5, 4);
-		//testSensor = =new DigitalInput(4);
 		intakeOpener = new DoubleSolenoid(0, 1);
 		copyrightedPatentPendingSquirrelThumbTM = new DoubleSolenoid(2, 3);
 		shiftyBusiness = new DoubleSolenoid(4, 5);
@@ -201,15 +208,16 @@ public class Robot extends TimedRobot {
 		elevatorPID.setAbsoluteTolerance(0);
 		elevatorPID.setOutputRange(-0.5, 0.5);
 		armPIDOutput = new EncoderBasedPIDOutput(0, 5, 0.5, armEncoderCounterA, armEncoderCounterB);
-		armPID = new PIDController(0.125, 0, 0, 0, armEncoder, armPIDOutput/*, 0.02*/);
+		armPID = new PIDController(0.02, 0, 0, 0, armEncoder, armPIDOutput/*, 0.02*/);
 		armPID.setAbsoluteTolerance(10);
-		armPID.setOutputRange(-0.5, 0.5);
+		armPID.setOutputRange(-0.25, 1);
 		@SuppressWarnings("unused")
 		PowerDistributionPanel PowerDistributionPanel = new PowerDistributionPanel(0);
 	}
 	
 	@Override
 	public void robotPeriodic() {
+		SmartDashboard.putBoolean("macroMode", macroMode);
 		SmartDashboard.putNumber("Left Distance ", leftEncoder.getDistance());
 		SmartDashboard.putNumber("Right Distance ", rightEncoder.getDistance());
 		SmartDashboard.putNumber("Distance ", average(leftEncoder.getDistance(), rightEncoder.getDistance()));
@@ -266,7 +274,8 @@ public class Robot extends TimedRobot {
 		currentPoint.setLocation(0, 0);
 		//m_autonomousCommand = new DriveToPointGroup(this, 0, 120);
 		//m_autonomousCommand = new RotateToAngleCommand(this, 90);
-		//m_autonomousCommand = new ShapeOfPowerGroup(this);
+		//m_autonomousCommand = new MoveElevatorToPosition(this, 20);
+		//m_autonomousCommand = new MoveArmToPosition(this, 60);
 		if (startPosition.getSelected().equals(specialStartPoint)) {
 			m_autonomousCommand = new DriveToPointGroup(this, 46.96, 166.89);
 		}
@@ -422,108 +431,211 @@ public class Robot extends TimedRobot {
 			shiftyBusiness.set(DoubleSolenoid.Value.kForward);
 		}
 		
-		//Intake
-		if (operateController.getTriggerAxis(GenericHID.Hand.kLeft) > 0.1) {
-			rightIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
-			leftIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
-		}
-		//Outtake
-		else if (operateController.getTriggerAxis(GenericHID.Hand.kRight) > 0.1) {
-			rightIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
-			leftIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
-		}
-		else {
-			rightIntake.set(0);
-			leftIntake.set(0);
-		}
+		double elevatorSpeed = 0;
 		
 		//Move elevator up
 		if (operateController.getBumper(GenericHID.Hand.kRight)) {
 			elevatorPID.enable();
-			elevatorPID.setSetpoint(ELEVATOR_TOP_VALUE);
-			elevator1.set(-elevatorPIDOutput.getOutput());
-			elevator2.set(-elevatorPIDOutput.getOutput());
+			elevatorPID.setSetpoint(ELEVATOR_PLACING_VALUE);
+			elevatorSpeed = -elevatorPIDOutput.getOutput();
 		}
 		else if (operateController.getY(GenericHID.Hand.kRight) > 0.1) {
 			elevatorPID.disable();
-			elevator1.set(operateController.getY(GenericHID.Hand.kRight));
-			elevator2.set(operateController.getY(GenericHID.Hand.kRight));
-		}
+			elevatorSpeed = operateController.getY(GenericHID.Hand.kRight);
+		} 
 		//Move elevator down
 		else if (operateController.getBumper(GenericHID.Hand.kLeft)) {
 			elevatorPID.enable();
 			elevatorPID.setSetpoint(ELEVATOR_BOTTOM_VALUE);
-			elevator1.set(-elevatorPIDOutput.getOutput());
-			elevator2.set(-elevatorPIDOutput.getOutput());
+			elevatorSpeed = -elevatorPIDOutput.getOutput();
 		}
 		else if (operateController.getY(GenericHID.Hand.kRight) < -0.1) {
 			elevatorPID.disable();
-			elevator1.set(operateController.getY(GenericHID.Hand.kRight));
-			elevator2.set(operateController.getY(GenericHID.Hand.kRight));
-		}
-		else {
+			elevatorSpeed = operateController.getY(GenericHID.Hand.kRight);
+		} else {
 			elevatorPID.disable();
-			elevator1.set(0);
-			elevator2.set(0);
+			elevatorSpeed = 0;
 		}
 		
-		if (isGrasperClosed) {
-			//Move arm up
-			if (operateController.getPOV() >= 45 && operateController.getPOV() <= 135) {
-				armPID.enable();
-				armPID.setSetpoint(ARM_TOP_VALUE);
-				arm.set(-armPIDOutput.getOutput());
+		if (elevatorEncoder.getDistance() >= ELEVATOR_TOP_VALUE && elevatorSpeed < 0) {
+			elevatorSpeed = 0;
+		}
+		
+		if (elevatorEncoder.getDistance() <= ELEVATOR_BOTTOM_VALUE && elevatorSpeed > 0) {
+			elevatorSpeed = 0;
+		}
+		
+		elevator1.set(elevatorSpeed);
+		elevator2.set(elevatorSpeed);
+		
+		double armSpeed = 0;
+		
+		//Move arm up
+		if (operateController.getPOV() >= 45 && operateController.getPOV() <= 135) {
+			armPID.enable();
+			armPID.setSetpoint(ARM_PLACING_VALUE);
+			armSpeed = -armPIDOutput.getOutput();
+		}
+		else if (-operateController.getY(GenericHID.Hand.kLeft) > 0.1) {
+			armPID.disable();
+			armSpeed = operateController.getY(GenericHID.Hand.kLeft);
+		}
+		//Move arm down
+		else if (operateController.getPOV() >= 225 && operateController.getPOV() <= 315) {
+			armPID.enable();
+			armPID.setSetpoint(ARM_BOTTOM_VALUE);
+			armSpeed = -armPIDOutput.getOutput();
+		}
+		else if (-operateController.getY(GenericHID.Hand.kLeft) < -0.1) {
+			armPID.disable();
+			armSpeed = (operateController.getY(GenericHID.Hand.kLeft));
+		}
+		else {
+			armPID.disable();
+			armSpeed = 0;
+		}
+		
+		if (armEncoder.getDistance() >= ARM_TOP_VALUE &&
+				armSpeed < 0) {
+			
+			armSpeed = 0;
+		}
+		if (armEncoder.getDistance() <= ARM_BOTTOM_VALUE &&
+				armSpeed > 0) {
+			armSpeed = 0;
+		}
+		
+		arm.set(armSpeed);
+		
+		//macroMode toggle
+		//press start button to toggle (operator)
+		if (operateController.getStartButtonPressed()) {
+			macroMode = !macroMode;
+		}	
+		
+		if (macroMode) {
+			
+			if (operateController.getXButton()) {
+				grabPhase = 1;
+				count = 0;
+			} else if (grabPhase == 1) {
+				grabPhase = 2;
+			} else if (grabPhase == 2) {
+				if (count >= 20) {
+					grabPhase = 3;
+				} else {
+					count++;
+				}
+			} else if (operateController.getAButton()) {
+				grabPhase = 4;
+				count = 0;
+			} else if (grabPhase == 4) {
+				grabPhase = 5;
+			} else if (grabPhase == 5) {
+				if (count >= 25) {
+					grabPhase = 3;
+				}
+				else {
+					count++;
+				}
 			}
-			else if (operateController.getY(GenericHID.Hand.kLeft) > 0.1) {
-				armPID.disable();
-				arm.set(operateController.getY(GenericHID.Hand.kLeft));
+			
+			if (grabPhase == 1) {
+				intakeAngle.set(DoubleSolenoid.Value.kReverse);
+				intakeOpener.set(DoubleSolenoid.Value.kForward);
+				copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
+				rightIntake.set(1);
+				leftIntake.set(-1);
+			} else if (grabPhase == 2) {
+				intakeOpener.set(DoubleSolenoid.Value.kReverse);
+				intakeAngle.set(DoubleSolenoid.Value.kReverse);
+				copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
+				rightIntake.set(1);
+				leftIntake.set(-1);
+			} else if (grabPhase == 3) { //mode == 3
+				if (armEncoder.getDistance()>=11) {
+					if (operateController.getBButton()) {
+						copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
+					}
+					else {
+						copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kForward);
+					}
+					intakeOpener.set(DoubleSolenoid.Value.kForward);
+				}
+				else {
+					copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
+					intakeOpener.set(DoubleSolenoid.Value.kReverse);
+				}
+				intakeAngle.set(DoubleSolenoid.Value.kForward);
+				rightIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft));
+				leftIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft));
+			} else if (grabPhase == 4) {
+				rightIntake.set(0);
+				leftIntake.set(-0);
+				copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
+				intakeAngle.set(DoubleSolenoid.Value.kReverse);
+				intakeOpener.set(DoubleSolenoid.Value.kReverse);
+			} else if (grabPhase == 5) {
+				rightIntake.set(-1);
+				leftIntake.set(1);
+				copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
+				intakeAngle.set(DoubleSolenoid.Value.kReverse);
+				intakeOpener.set(DoubleSolenoid.Value.kReverse);
 			}
-			//Move arm down
-			else if (operateController.getPOV() >= 225 && operateController.getPOV() <= 315) {
-				armPID.enable();
-				armPID.setSetpoint(ARM_BOTTOM_VALUE);
-				arm.set(-armPIDOutput.getOutput());
+			
+			
+			
+		} else {
+			
+			//Intake
+			if (operateController.getTriggerAxis(GenericHID.Hand.kLeft) > 0.1) {
+				rightIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
+				leftIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
 			}
-			else if (operateController.getY(GenericHID.Hand.kLeft) < -0.1) {
-				armPID.disable();
-				arm.set(operateController.getY(GenericHID.Hand.kLeft));
+			//Outtake
+			else if (operateController.getTriggerAxis(GenericHID.Hand.kRight) > 0.1) {
+				rightIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
+				leftIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
 			}
 			else {
-				armPID.disable();
-				arm.set(0);
+				rightIntake.set(0);
+				leftIntake.set(0);
 			}
-		}
-		
-		//Open or close the grasper
-		//Press 'A' to piston (operator)
-		if (operateController.getBButtonPressed()) {
-			isGrasperClosed = !isGrasperClosed;
-		}
-		if (isGrasperClosed) {
-			copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kForward);
-		}
-		else {
-			copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
-		}
-		
-		//Intake up for grabber grabbing
-		if (operateController.getXButton()) {
-			intakeAngle.set(DoubleSolenoid.Value.kReverse);
-		}
-		//Intake down for cube vacuuming
-		else {
-			intakeAngle.set(DoubleSolenoid.Value.kForward);
-		}
-		
-		//Intake open or closed for cube grabbing
-		if (operateController.getAButtonPressed()) {
-			isIntakeClosed = !isIntakeClosed;
-		}
-		if (isIntakeClosed) {
-			intakeOpener.set(DoubleSolenoid.Value.kReverse);
-		}
-		else {
-			intakeOpener.set(DoubleSolenoid.Value.kForward);
+			
+			//Open or close the grasper
+			//Press 'B' to piston (operator)
+			if (operateController.getBButtonPressed()) {
+				isGrasperClosed = !isGrasperClosed;
+			}
+			if (isGrasperClosed) {
+				copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kForward);
+			}
+			else {
+				copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
+			}
+			
+			//Intake up for grabber grabbing
+			if (operateController.getXButtonPressed()) {
+				isIntakeUp = !isIntakeUp;
+			}
+			if (isIntakeUp) {
+				intakeAngle.set(DoubleSolenoid.Value.kReverse);
+			}
+			//Intake down for cube vacuuming
+			else {
+				intakeAngle.set(DoubleSolenoid.Value.kForward);
+			}
+			
+			//Intake open or closed for cube grabbing
+			if (operateController.getAButtonPressed()) {
+				isIntakeClosed = !isIntakeClosed;
+			}
+			if (isIntakeClosed) {
+				intakeOpener.set(DoubleSolenoid.Value.kReverse);
+			}
+			else {
+				intakeOpener.set(DoubleSolenoid.Value.kForward);
+			}
 		}
 	}
 

@@ -23,10 +23,10 @@ public class ManipulateCPPSTTM extends Command {
     // Called just before this Command runs the first time
     protected void initialize() {
     	if (open) {
-    		robot.copyrightedPatentPendingSquirrelThumbTM.set(Value.kForward);
+    		robot.copyrightedPatentPendingSquirrelThumbTM.set(Value.kReverse);
     	}
     	else {
-    		robot.copyrightedPatentPendingSquirrelThumbTM.set(Value.kReverse);
+    		robot.copyrightedPatentPendingSquirrelThumbTM.set(Value.kForward);
     	}
     }
 
