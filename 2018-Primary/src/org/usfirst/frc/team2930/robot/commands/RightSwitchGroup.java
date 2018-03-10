@@ -8,9 +8,9 @@ import java.awt.geom.Point2D.Double;
 /**
  *
  */
-public class LeftAutonScaleGroup extends CommandGroup {
+public class RightSwitchGroup extends CommandGroup {
 
-    public LeftAutonScaleGroup(Robot robot) {
+    public RightSwitchGroup(Robot robot) {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
@@ -28,22 +28,29 @@ public class LeftAutonScaleGroup extends CommandGroup {
         // a CommandGroup containing them would require both the chassis and the
         // arm.
     	
-    	//In open space
-    	Point2D.Double toPoint = new Double(46.96, 232.99);
+    	//Slightly forward
+    	Point2D.Double toPoint = new Double(277.65, 26.00);
+    	// Intake is closed
+    	// Intake is up
+    	// Move arm to position 22
+    	addSequential(new MoveArmToPositionCommand(robot, 22));
     	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
-    	addParallel(new MoveElevatorToPosition(robot, robot.ELEVATOR_TOP_VALUE));
-    	addParallel(new MoveArmToPosition(robot, robot.ARM_TOP_VALUE));
-    	//At scale ready to be placed
-    	toPoint.setLocation(59.96, 279.99);
+		// Close grasper
+    	addSequential(new ManipulateCPPSTTM(robot, false));
+    	toPoint = new Double(277.65, 166.89);
+    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	// Move arm to ARM_PLACING
+    	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_PLACING_VALUE));
+    	addSequential(new WaitCommand(0.125));
+    	//Face switch
+    	addSequential(new RotateToAngleCommand(robot, 90));
+    	// Open intake
+    	addSequential(new OpenIntakeCommand(robot, true));
+    	//Touching switch
+    	toPoint.setLocation(258.85, 166.89);
     	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
     	//Place cube
+    	// Open grasper
     	addSequential(new ManipulateCPPSTTM(robot, true));
-    	addSequential(new WaitCommand(0.25));
-    	addSequential(new ManipulateCPPSTTM(robot, false));
-    	//Back up
-    	toPoint.setLocation(46.96, 232.99);
-    	addSequential(new DriveToPointGroup(robot, toPoint, true));
-    	addSequential(new MoveElevatorToPosition(robot, robot.ELEVATOR_BOTTOM_VALUE));
-    	addSequential(new MoveArmToPosition(robot, robot.ARM_BOTTOM_VALUE));
     }
 }

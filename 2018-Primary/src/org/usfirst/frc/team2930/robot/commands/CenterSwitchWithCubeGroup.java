@@ -8,9 +8,9 @@ import edu.wpi.first.wpilibj.command.CommandGroup;
 /**
  *
  */
-public class CenterAutonSwitchWithCubeGroup extends CommandGroup {
+public class CenterSwitchWithCubeGroup extends CommandGroup {
 
-    public CenterAutonSwitchWithCubeGroup(Robot robot) {
+    public CenterSwitchWithCubeGroup(Robot robot) {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());

@@ -8,9 +8,9 @@ import java.awt.geom.Point2D.Double;
 /**
  *
  */
-public class RightAutonSwitchGroup extends CommandGroup {
+public class RightOppositeScaleGroup extends CommandGroup {
 
-    public RightAutonSwitchGroup(Robot robot) {
+    public RightOppositeScaleGroup(Robot robot) {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
@@ -28,13 +28,10 @@ public class RightAutonSwitchGroup extends CommandGroup {
         // a CommandGroup containing them would require both the chassis and the
         // arm.
     	
-    	//Beside switch
-    	Point2D.Double toPoint = new Double(277.65, 166.89);
+    	//In open space
+    	Point2D.Double toPoint = new Double(277.65, 232.99);
     	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
-    	//Touching switch
-    	toPoint.setLocation(258.85, 166.89);
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
-    	//Place cube
-    	addSequential(new EjectIntakeCubeGroup(robot));
+    	//Across the field
+    	addSequential(new LeftScaleGroup(robot));
     }
 }

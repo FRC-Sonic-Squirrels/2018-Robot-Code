@@ -7,12 +7,12 @@ import org.usfirst.frc.team2930.robot.*;
 /**
  *
  */
-public class MoveElevatorToPosition extends Command {
+public class MoveArmToPositionCommand extends Command {
 	
 	Robot robot;
 	double height;
 
-    public MoveElevatorToPosition(Robot robot, double height) {
+    public MoveArmToPositionCommand(Robot robot, double height) {
         // Use requires() here to declare subsystem dependencies
         // eg. requires(chassis);
     	this.robot = robot;
@@ -21,7 +21,7 @@ public class MoveElevatorToPosition extends Command {
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	robot.elevatorPID.setSetpoint(height);
+    	robot.armPID.setSetpoint(height);
     }
 
     // Called repeatedly when this Command is scheduled to run
@@ -30,10 +30,7 @@ public class MoveElevatorToPosition extends Command {
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	if (robot.elevatorPID.onTarget()) {
-    		return true;
-    	}
-        return false;
+    	return true;
     }
 
     // Called once after isFinished returns true

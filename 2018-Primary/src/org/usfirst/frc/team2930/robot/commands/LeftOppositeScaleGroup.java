@@ -8,9 +8,9 @@ import java.awt.geom.Point2D.Double;
 /**
  *
  */
-public class RightAutonOppositeScaleGroup extends CommandGroup {
+public class LeftOppositeScaleGroup extends CommandGroup {
 
-    public RightAutonOppositeScaleGroup(Robot robot) {
+    public LeftOppositeScaleGroup(Robot robot) {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
@@ -29,9 +29,9 @@ public class RightAutonOppositeScaleGroup extends CommandGroup {
         // arm.
     	
     	//In open space
-    	Point2D.Double toPoint = new Double(277.65, 232.99);
+    	Point2D.Double toPoint = new Double(46.96, 232.99);
     	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
     	//Across the field
-    	addSequential(new LeftAutonScaleGroup(robot));
+    	addSequential(new RightScaleGroup(robot));
     }
 }

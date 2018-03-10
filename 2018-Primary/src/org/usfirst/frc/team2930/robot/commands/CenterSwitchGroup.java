@@ -8,9 +8,9 @@ import edu.wpi.first.wpilibj.command.CommandGroup;
 /**
  *
  */
-public class CenterAutonSwitchGroup extends CommandGroup {
+public class CenterSwitchGroup extends CommandGroup {
 
-    public CenterAutonSwitchGroup(Robot robot) {
+    public CenterSwitchGroup(Robot robot) {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
@@ -32,24 +32,34 @@ public class CenterAutonSwitchGroup extends CommandGroup {
     	Point2D.Double toPoint = new Double(167.58, 26.00);
     	// Intake is closed
     	// Intake is up
-    	// Move arm to position 11
-    	addSequential(new MoveArmToPosition(robot, 11));
+    	// Move arm to position 22
+    	addSequential(new MoveArmToPositionCommand(robot, 22));
     	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
-    	// Open intake
-    	addSequential(new OpenIntakeCommand(robot, true));
 		// Close grasper
     	addSequential(new ManipulateCPPSTTM(robot, false));
-		// Move arm to ARM_PLACING
-    	addSequential(new MoveArmToPosition(robot, robot.ARM_PLACING_VALUE));
     	if (robot.gameData.charAt(0) == 'L') {
     		//Switch angled
-    		toPoint.setLocation(116.34,  112.88);
+    		toPoint.setLocation(110.34,  112.88);
+    		addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    		// Open intake
+        	addSequential(new OpenIntakeCommand(robot, true));
+        	// Move arm to ARM_PLACING
+        	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_PLACING_VALUE));
+        	//Switch head-on
+    		toPoint.setLocation(110.34, 125);
     		addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
     	}
     	else {
     		//Switch angled
-        	toPoint.setLocation(210.04,  112.88);
-        	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));;
+        	toPoint.setLocation(216.04,  112.88);
+        	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+        	// Open intake
+        	addSequential(new OpenIntakeCommand(robot, true));
+        	// Move arm to ARM_PLACING
+        	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_PLACING_VALUE));
+        	//Switch head-on
+        	toPoint.setLocation(216.04, 125);
+        	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
     	}
     	//Place cube
     	// Open grasper

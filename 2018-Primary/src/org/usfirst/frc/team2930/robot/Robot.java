@@ -81,12 +81,16 @@ public class Robot extends TimedRobot {
 	public boolean isIntakeUp = false;
 	public boolean isGrasperClosed = true;
 	public boolean macroMode = true;
+	public boolean armForSwitch = false;
 	public double intakeSpeed = 0;
+	public double armSpeed = 0;
+	
 	public final double ELEVATOR_TOP_VALUE = 30;
 	public final double ELEVATOR_PLACING_VALUE = 20;
 	public final double ELEVATOR_BOTTOM_VALUE = 1;
-	public final double ARM_TOP_VALUE = 120;
+	public final double ARM_TOP_VALUE = 110;
 	public final double ARM_PLACING_VALUE = 90;
+	public final double ARM_SWITCH_VALUE = 55;
 	public final double ARM_BOTTOM_VALUE = 0;
 	int grabPhase = 3;
 	int armPhase = 2;
@@ -282,18 +286,18 @@ public class Robot extends TimedRobot {
 		if (pickUpExtraCube.getSelected()) {
 			if (startPosition.getSelected().equals(centerStartPoint)) {
 				currentPoint.setLocation(centerStartPoint);
-				m_autonomousCommand = new CenterAutonSwitchWithCubeGroup(this);
+				m_autonomousCommand = new CenterSwitchWithCubeGroup(this);
 			}
 			else if (startPosition.getSelected().equals(leftStartPoint)) {
 				currentPoint.setLocation(leftStartPoint);
 				if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L') {
-					m_autonomousCommand = new LeftAutonScaleWithCubeGroup(this);
+					m_autonomousCommand = new LeftScaleWithCubeOnSameSwitchGroup(this);
 				}
 				else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R' && doLongPaths.getSelected()) {
-					m_autonomousCommand = new LeftAutonOppositeScaleGroup(this);
+					m_autonomousCommand = new LeftOppositeScaleGroup(this);
 				}
 				else if (gameData.charAt(0) == 'L') {
-					m_autonomousCommand = new LeftAutonSwitchGroup(this);
+					m_autonomousCommand = new LeftSwitchGroup(this);
 				}
 				else {
 					m_autonomousCommand = new DriveToPointGroup(this, 46.96, 166.89);
@@ -302,13 +306,13 @@ public class Robot extends TimedRobot {
 			else if (startPosition.getSelected().equals(rightStartPoint)) {
 				currentPoint.setLocation(rightStartPoint);
 				if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R') {
-					m_autonomousCommand = new RightAutonScaleWithCubeGroup(this);
+					m_autonomousCommand = new RightScaleWithCubeGroup(this);
 				}
 				else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L' && doLongPaths.getSelected()) {
-					m_autonomousCommand = new RightAutonOppositeScaleGroup(this);
+					m_autonomousCommand = new RightOppositeScaleGroup(this);
 				}
 				else if (gameData.charAt(0) == 'R') {
-					m_autonomousCommand = new RightAutonSwitchGroup(this);
+					m_autonomousCommand = new RightSwitchGroup(this);
 				}
 				else {
 					m_autonomousCommand = new DriveToPointGroup(this, 277.65, 166.89);
@@ -318,18 +322,18 @@ public class Robot extends TimedRobot {
 		else {
 			if (startPosition.getSelected().equals(centerStartPoint)) {
 				currentPoint.setLocation(centerStartPoint);
-				m_autonomousCommand = new CenterAutonSwitchGroup(this);
+				m_autonomousCommand = new CenterSwitchGroup(this);
 			}
 			else if (startPosition.getSelected().equals(leftStartPoint)) {
 				currentPoint.setLocation(leftStartPoint);
 				if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L') {
-					m_autonomousCommand = new LeftAutonScaleGroup(this);
+					m_autonomousCommand = new LeftScaleGroup(this);
 				}
 				else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R' && doLongPaths.getSelected()) {
-					m_autonomousCommand = new LeftAutonOppositeScaleGroup(this);
+					m_autonomousCommand = new LeftOppositeScaleGroup(this);
 				}
 				else if (gameData.charAt(0) == 'L') {
-					m_autonomousCommand = new LeftAutonSwitchGroup(this);
+					m_autonomousCommand = new LeftSwitchGroup(this);
 				}
 				else {
 					m_autonomousCommand = new DriveToPointGroup(this, 46.96, 166.89);
@@ -338,13 +342,13 @@ public class Robot extends TimedRobot {
 			else if (startPosition.getSelected().equals(rightStartPoint)) {
 				currentPoint.setLocation(rightStartPoint);
 				if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R') {
-					m_autonomousCommand = new RightAutonScaleGroup(this);
+					m_autonomousCommand = new RightScaleGroup(this);
 				}
 				else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L' && doLongPaths.getSelected()) {
-					m_autonomousCommand = new RightAutonOppositeScaleGroup(this);
+					m_autonomousCommand = new RightOppositeScaleGroup(this);
 				}
 				else if (gameData.charAt(0) == 'R') {
-					m_autonomousCommand = new RightAutonSwitchGroup(this);
+					m_autonomousCommand = new RightSwitchGroup(this);
 				}
 				else {
 					m_autonomousCommand = new DriveToPointGroup(this, 277.65, 166.89);
@@ -434,20 +438,9 @@ public class Robot extends TimedRobot {
 		double elevatorSpeed = 0;
 		
 		//Move elevator up
-		if (operateController.getBumper(GenericHID.Hand.kRight)) {
-			elevatorPID.enable();
-			elevatorPID.setSetpoint(ELEVATOR_PLACING_VALUE);
-			elevatorSpeed = -elevatorPIDOutput.getOutput();
-		}
-		else if (operateController.getY(GenericHID.Hand.kRight) > 0.1) {
+		if (operateController.getY(GenericHID.Hand.kRight) > 0.1) {
 			elevatorPID.disable();
 			elevatorSpeed = operateController.getY(GenericHID.Hand.kRight);
-		} 
-		//Move elevator down
-		else if (operateController.getBumper(GenericHID.Hand.kLeft)) {
-			elevatorPID.enable();
-			elevatorPID.setSetpoint(ELEVATOR_BOTTOM_VALUE);
-			elevatorSpeed = -elevatorPIDOutput.getOutput();
 		}
 		else if (operateController.getY(GenericHID.Hand.kRight) < -0.1) {
 			elevatorPID.disable();
@@ -468,41 +461,32 @@ public class Robot extends TimedRobot {
 		elevator1.set(elevatorSpeed);
 		elevator2.set(elevatorSpeed);
 		
-		double armSpeed = 0;
-		
-		//Move arm up
-		if (operateController.getPOV() >= 45 && operateController.getPOV() <= 135) {
+		//Arm move-y stuff
+		if (operateController.getBackButton()) {
+			armPID.disable();
+		}
+		if (operateController.getPOV() == 0) {
+			armPID.enable();
+			armPID.setSetpoint(ARM_TOP_VALUE);
+		}
+		else if (operateController.getPOV() == 90) {
 			armPID.enable();
 			armPID.setSetpoint(ARM_PLACING_VALUE);
-			armSpeed = -armPIDOutput.getOutput();
 		}
-		else if (-operateController.getY(GenericHID.Hand.kLeft) > 0.1) {
-			armPID.disable();
-			armSpeed = operateController.getY(GenericHID.Hand.kLeft);
-		}
-		//Move arm down
-		else if (operateController.getPOV() >= 225 && operateController.getPOV() <= 315) {
+		else if (operateController.getPOV() == 180) {
 			armPID.enable();
 			armPID.setSetpoint(ARM_BOTTOM_VALUE);
+		}
+		else if (operateController.getPOV() == 270) {
+			armPID.enable();
+			armPID.setSetpoint(ARM_SWITCH_VALUE);
+		}
+
+		if (armPID.isEnabled()) {
 			armSpeed = -armPIDOutput.getOutput();
 		}
-		else if (-operateController.getY(GenericHID.Hand.kLeft) < -0.1) {
-			armPID.disable();
-			armSpeed = (operateController.getY(GenericHID.Hand.kLeft));
-		}
 		else {
-			armPID.disable();
-			armSpeed = 0;
-		}
-		
-		if (armEncoder.getDistance() >= ARM_TOP_VALUE &&
-				armSpeed < 0) {
-			
-			armSpeed = 0;
-		}
-		if (armEncoder.getDistance() <= ARM_BOTTOM_VALUE &&
-				armSpeed > 0) {
-			armSpeed = 0;
+			armSpeed = operateController.getY(GenericHID.Hand.kLeft);
 		}
 		
 		arm.set(armSpeed);
@@ -518,20 +502,25 @@ public class Robot extends TimedRobot {
 			if (operateController.getXButton()) {
 				grabPhase = 1;
 				count = 0;
-			} else if (grabPhase == 1) {
+			}
+			else if (grabPhase == 1) {
 				grabPhase = 2;
-			} else if (grabPhase == 2) {
-				if (count >= 20) {
+			}
+			else if (grabPhase == 2) {
+				if (count >= 30) {
 					grabPhase = 3;
 				} else {
 					count++;
 				}
-			} else if (operateController.getAButton()) {
+			}
+			else if (operateController.getAButton()) {
 				grabPhase = 4;
 				count = 0;
-			} else if (grabPhase == 4) {
+			}
+			else if (grabPhase == 4) {
 				grabPhase = 5;
-			} else if (grabPhase == 5) {
+			}
+			else if (grabPhase == 5) {
 				if (count >= 25) {
 					grabPhase = 3;
 				}
@@ -546,14 +535,16 @@ public class Robot extends TimedRobot {
 				copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
 				rightIntake.set(1);
 				leftIntake.set(-1);
-			} else if (grabPhase == 2) {
+			}
+			else if (grabPhase == 2) {
 				intakeOpener.set(DoubleSolenoid.Value.kReverse);
 				intakeAngle.set(DoubleSolenoid.Value.kReverse);
 				copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
 				rightIntake.set(1);
 				leftIntake.set(-1);
-			} else if (grabPhase == 3) { //mode == 3
-				if (armEncoder.getDistance()>=11) {
+			}
+			else if (grabPhase == 3) { //mode == 3
+				if (armEncoder.getDistance() >= 11 && armEncoder.getDistance() <= 30) {
 					if (operateController.getBButton()) {
 						copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
 					}
@@ -567,25 +558,37 @@ public class Robot extends TimedRobot {
 					intakeOpener.set(DoubleSolenoid.Value.kReverse);
 				}
 				intakeAngle.set(DoubleSolenoid.Value.kForward);
-				rightIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft));
-				leftIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft));
-			} else if (grabPhase == 4) {
+				//Intake
+				if (operateController.getTriggerAxis(GenericHID.Hand.kLeft) > 0.1) {
+					rightIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
+					leftIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kLeft)*0.65);
+				}
+				//Outtake
+				else if (operateController.getTriggerAxis(GenericHID.Hand.kRight) > 0.1) {
+					rightIntake.set(-operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
+					leftIntake.set(operateController.getTriggerAxis(GenericHID.Hand.kRight)*0.65);
+				}
+				else {
+					rightIntake.set(0);
+					leftIntake.set(0);
+				}
+			}
+			else if (grabPhase == 4) {
 				rightIntake.set(0);
 				leftIntake.set(-0);
 				copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
 				intakeAngle.set(DoubleSolenoid.Value.kReverse);
 				intakeOpener.set(DoubleSolenoid.Value.kReverse);
-			} else if (grabPhase == 5) {
+			}
+			else if (grabPhase == 5) {
 				rightIntake.set(-1);
 				leftIntake.set(1);
 				copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
 				intakeAngle.set(DoubleSolenoid.Value.kReverse);
 				intakeOpener.set(DoubleSolenoid.Value.kReverse);
 			}
-			
-			
-			
-		} else {
+		}
+		else {
 			
 			//Intake
 			if (operateController.getTriggerAxis(GenericHID.Hand.kLeft) > 0.1) {
@@ -601,6 +604,9 @@ public class Robot extends TimedRobot {
 				rightIntake.set(0);
 				leftIntake.set(0);
 			}
+			
+			//Move arm for switch placement
+			
 			
 			//Open or close the grasper
 			//Press 'B' to piston (operator)
