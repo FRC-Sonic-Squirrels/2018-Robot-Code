@@ -187,6 +187,7 @@ public class Robot extends TimedRobot {
 		armEncoder.setDistancePerPulse(90 / 30.75);
 		armEncoder.setPIDSourceType(PIDSourceType.kDisplacement);
 		armEncoder.setMaxPeriod(0.5);
+		armEncoder.setReverseDirection(true);
 		encoderAverage = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		encoderAverageRate = new EncoderAveragePIDSource(leftEncoder, rightEncoder);
 		encoderAverageRate.setPIDSourceType(PIDSourceType.kRate);
@@ -212,9 +213,9 @@ public class Robot extends TimedRobot {
 		elevatorPID.setAbsoluteTolerance(0);
 		elevatorPID.setOutputRange(-0.5, 0.5);
 		armPIDOutput = new EncoderBasedPIDOutput(0, 5, 0.5, armEncoderCounterA, armEncoderCounterB);
-		armPID = new PIDController(0.02, 0, 0, 0, armEncoder, armPIDOutput/*, 0.02*/);
+		armPID = new PIDController(0.025, 0, 0, 0, armEncoder, armPIDOutput/*, 0.02*/);
 		armPID.setAbsoluteTolerance(10);
-		armPID.setOutputRange(-0.25, 1);
+		armPID.setOutputRange(-0.5, 0.5);
 		@SuppressWarnings("unused")
 		PowerDistributionPanel PowerDistributionPanel = new PowerDistributionPanel(0);
 	}
@@ -544,14 +545,20 @@ public class Robot extends TimedRobot {
 				leftIntake.set(-1);
 			}
 			else if (grabPhase == 3) { //mode == 3
-				if (armEncoder.getDistance() >= 11 && armEncoder.getDistance() <= 30) {
+				if (armEncoder.getDistance() >= 6) {
+					if (armEncoder.getDistance() <= 48) {
+						intakeOpener.set(DoubleSolenoid.Value.kForward);
+					} else {
+						intakeOpener.set(DoubleSolenoid.Value.kReverse);
+					}
+					
 					if (operateController.getBButton()) {
 						copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
 					}
 					else {
 						copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kForward);
 					}
-					intakeOpener.set(DoubleSolenoid.Value.kForward);
+					
 				}
 				else {
 					copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
