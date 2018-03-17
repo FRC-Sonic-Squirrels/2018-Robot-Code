@@ -2,7 +2,6 @@ package org.usfirst.frc.team2930.robot.commands;
 
 import org.usfirst.frc.team2930.robot.Robot;
 import java.awt.geom.Point2D;
-import java.awt.geom.Point2D.Double;
 
 import edu.wpi.first.wpilibj.command.CommandGroup;
 
@@ -11,18 +10,15 @@ import edu.wpi.first.wpilibj.command.CommandGroup;
  */
 public class DriveToPointGroup extends CommandGroup {
 	
-	public DriveToPointGroup(Robot robot, double x, double y) {
-		this(robot, x, y, false);
-	}
-	public DriveToPointGroup(Robot robot, double x, double y, boolean isReversed) {
-		this(robot, new Double(x, y), isReversed);
+	public DriveToPointGroup(Robot robot, Point2D.Double toPoint) {
+		this(robot, toPoint, false, false);
 	}
 	
-	public DriveToPointGroup(Robot robot, Point2D.Double toPoint) {
-		this(robot, toPoint, false);
+	public DriveToPointGroup(Robot robot, Point2D.Double toPoint, boolean isReversed) {
+		this(robot, toPoint, isReversed, false);
 	}
 
-    public DriveToPointGroup(Robot robot, Point2D.Double toPoint, boolean isReversed) {
+    public DriveToPointGroup(Robot robot, Point2D.Double toPoint, boolean isReversed, boolean careful) {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
@@ -50,7 +46,7 @@ public class DriveToPointGroup extends CommandGroup {
 			theta = theta > 0 ? theta - 180 : theta + 180;
 		}
 		addSequential(new RotateToAngleCommand(robot, theta));
-		addSequential(new DriveByDistanceCommand(robot, distance, theta));
+		addSequential(new DriveByDistanceCommand(robot, distance, theta, careful));
     	robot.currentPoint.setLocation(toPoint.getX(), toPoint.getY());
     }
 }

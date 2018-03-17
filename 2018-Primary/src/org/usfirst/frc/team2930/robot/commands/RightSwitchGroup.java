@@ -34,11 +34,11 @@ public class RightSwitchGroup extends CommandGroup {
     	// Intake is up
     	// Move arm to position 22
     	addSequential(new MoveArmToPositionCommand(robot, 22));
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	addSequential(new DriveToPointGroup(robot, toPoint));
 		// Close grasper
     	addSequential(new ManipulateCPPSTTM(robot, false));
     	toPoint = new Double(277.65, 166.89);
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	addSequential(new DriveToPointGroup(robot, toPoint));
     	// Move arm to ARM_PLACING
     	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_PLACING_VALUE));
     	addSequential(new WaitCommand(0.125));
@@ -48,7 +48,7 @@ public class RightSwitchGroup extends CommandGroup {
     	addSequential(new OpenIntakeCommand(robot, true));
     	//Touching switch
     	toPoint.setLocation(258.85, 166.89);
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	addSequential(new DriveToPointGroup(robot, toPoint));
     	//Place cube
     	// Open grasper
     	addSequential(new ManipulateCPPSTTM(robot, true));

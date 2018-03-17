@@ -32,11 +32,11 @@ public class GrabCubeGroup extends CommandGroup {
 		addSequential(new SetIntakeSpeedCommand(robot, 1));
 		double originalX = robot.currentPoint.getX();
 		double originalY = robot.currentPoint.getY();
-		addSequential(new DriveToPointGroup(robot, toPoint));
+		addSequential(new DriveToPointGroup(robot, toPoint, false, false));
 		addSequential(new OpenIntakeCommand(robot, false));
 		addSequential(new WaitCommand(0.25));
 		addSequential(new SetIntakeSpeedCommand(robot, 0));
-		addSequential(new DriveToPointGroup(robot, originalX, originalY, true));
+		addSequential(new DriveToPointGroup(robot, new Point2D.Double(originalX, originalY), true, false));
 		addSequential(new WaitCommand(0.5));
 		addSequential(new AngleIntakeCommand(robot, true));
 		addSequential(new WaitCommand(0.25));

@@ -6,9 +6,9 @@ import org.usfirst.frc.team2930.robot.Robot;
 /**
  *
  */
-public class EjectIntakeCubeGroup extends CommandGroup {
+public class EjectCubeFromIntakeGroup extends CommandGroup {
 
-    public EjectIntakeCubeGroup(Robot robot) {
+    public EjectCubeFromIntakeGroup(Robot robot) {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
@@ -26,10 +26,11 @@ public class EjectIntakeCubeGroup extends CommandGroup {
         // a CommandGroup containing them would require both the chassis and the
         // arm.
     	
-    	addSequential(new SetIntakeSpeedCommand(robot, -1));
-    	addSequential(new MoveArmToPositionCommand(robot, 30));
+    	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_PLACING_VALUE));
     	addSequential(new WaitCommand(0.25));
-    	addSequential(new SetIntakeSpeedCommand(robot, 0));
+    	addSequential(new ManipulateCPPSTTM(robot, true));
+    	addSequential(new WaitCommand(0.25));
+    	addSequential(new ManipulateCPPSTTM(robot, false));
     	addSequential(new MoveArmToPositionCommand(robot, 0));
     }
 }

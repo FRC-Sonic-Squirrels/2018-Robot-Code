@@ -8,9 +8,9 @@ import java.awt.geom.Point2D.Double;
 /**
  *
  */
-public class LeftScaleWithCubeOnSameSwitchGroup extends CommandGroup {
+public class RightOppositeScaleWithCubeOnSameSwitchGroup extends CommandGroup {
 
-    public LeftScaleWithCubeOnSameSwitchGroup(Robot robot) {
+    public RightOppositeScaleWithCubeOnSameSwitchGroup(Robot robot) {
         // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
@@ -39,11 +39,38 @@ public class LeftScaleWithCubeOnSameSwitchGroup extends CommandGroup {
     	addSequential(new ManipulateCPPSTTM(robot, false));
     	//Open the intake
     	addSequential(new OpenIntakeCommand(robot, true));
-    	//In open space
-    	toPoint.setLocation(46.96, 232.99);
+    	//Open space
+    	toPoint.setLocation(277.65, 232.99);
+    	addSequential(new DriveToPointGroup(robot, toPoint, true));
+    	//Move forward to place on switch
+    	toPoint.setLocation(217.97, 223.08);
     	addSequential(new DriveToPointGroup(robot, toPoint));
-    	addParallel(new MoveElevatorToPositionCommand(robot, robot.ELEVATOR_TOP_VALUE));
-    	addParallel(new MoveArmToPositionCommand(robot, robot.ARM_TOP_VALUE));
+    	//Move to switch
+    	toPoint.setLocation(217.97, 216.34);
+    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	//Eject onto switch
+    	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_PLACING_VALUE));
+    	addSequential(new WaitCommand(0.25));
+    	addSequential(new ManipulateCPPSTTM(robot, true));
+    	//Back up
+    	toPoint.setLocation(251.12, 220.14);
+    	addSequential(new DriveToPointGroup(robot, toPoint, false));
+    	//Across the field
+    	toPoint.setLocation(46.96, 232.99);
+    	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_BOTTOM_VALUE));
+    	addSequential(new MoveElevatorToPositionCommand(robot, robot.ELEVATOR_BOTTOM_VALUE));
+    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	//Turn to cube
+    	toPoint.setLocation(68.94, 220.14);
+    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	addParallel(new MoveElevatorToPositionCommand(robot, robot.ELEVATOR_BOTTOM_VALUE));
+    	addParallel(new MoveArmToPositionCommand(robot, robot.ARM_BOTTOM_VALUE));
+    	//Grab cube
+    	toPoint.setLocation(toPoint.getX() + 5, toPoint.getY() - 5);
+    	addSequential(new GrabCubeGroup(robot, toPoint));
+    	//Back to open space
+    	toPoint.setLocation(68.94, 220.14);
+    	addSequential(new DriveToPointGroup(robot, toPoint));
     	//At scale ready to be placed
     	toPoint.setLocation(59.96, 279.99);
     	addSequential(new DriveToPointGroup(robot, toPoint));
@@ -54,23 +81,5 @@ public class LeftScaleWithCubeOnSameSwitchGroup extends CommandGroup {
     	//Back up
     	toPoint.setLocation(46.96, 232.99);
     	addSequential(new DriveToPointGroup(robot, toPoint, true));
-    	//Turn to cube
-    	toPoint.setLocation(68.94, 220.14);
-    	addSequential(new DriveToPointGroup(robot, toPoint));
-    	addParallel(new MoveElevatorToPositionCommand(robot, robot.ELEVATOR_BOTTOM_VALUE));
-    	addParallel(new MoveArmToPositionCommand(robot, robot.ARM_BOTTOM_VALUE));
-    	//Grab cube
-    	toPoint.setLocation(toPoint.getX() + 5, toPoint.getY() - 5);
-    	addSequential(new GrabCubeGroup(robot, toPoint));
-    	//Move forward to place on switch
-    	toPoint.setLocation(107.69, 223.08);
-    	addSequential(new DriveToPointGroup(robot, toPoint));
-    	//Move to switch
-    	toPoint.setLocation(107.69, 216.34);
-    	addSequential(new DriveToPointGroup(robot, toPoint));
-    	//Eject onto switch
-    	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_PLACING_VALUE));
-    	addSequential(new WaitCommand(0.25));
-    	addSequential(new ManipulateCPPSTTM(robot, true));
     }
 }

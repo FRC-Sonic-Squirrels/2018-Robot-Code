@@ -50,9 +50,9 @@ public class ShapeOfPowerGroup extends CommandGroup {
     	addSequential(new DriveToPointGroup(thisRobot, toX, toY, true));
     	addSequential(new RotateToAngleCommand(thisRobot, 0));*/
     	Point2D.Double toPoint = new Double(0, 5);
-    	addSequential(new DriveToPointGroup(thisRobot, toPoint.getX(), toPoint.getY()));
+    	addSequential(new DriveToPointGroup(thisRobot, toPoint));
     	toPoint.setLocation(0, 0);
-    	addSequential(new DriveToPointGroup(thisRobot, toPoint.getX(), toPoint.getY()));
+    	addSequential(new DriveToPointGroup(thisRobot, toPoint));
     	addSequential(new RotateToAngleCommand(thisRobot, 0));
     }
 }

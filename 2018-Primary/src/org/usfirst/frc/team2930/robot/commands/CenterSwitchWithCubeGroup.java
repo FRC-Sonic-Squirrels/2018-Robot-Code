@@ -39,7 +39,7 @@ public class CenterSwitchWithCubeGroup extends CommandGroup {
     		toPoint.setLocation(110.34, 119.89);
     		addSequential(new DriveToPointGroup(robot, toPoint));
     		//Eject cube
-    		addSequential(new EjectIntakeCubeGroup(robot));
+    		addSequential(new EjectCubeFromIntakeGroup(robot));
     		//Back up
     		toPoint.setLocation(110.34, 95.75);
     		addSequential(new DriveToPointGroup(robot, toPoint, true));
@@ -64,7 +64,7 @@ public class CenterSwitchWithCubeGroup extends CommandGroup {
         	toPoint.setLocation(216.04, 119.89);
         	addSequential(new DriveToPointGroup(robot, toPoint));
         	//Eject cube
-        	addSequential(new EjectIntakeCubeGroup(robot));
+        	addSequential(new EjectCubeFromIntakeGroup(robot));
     		//Back up
     		toPoint.setLocation(216.04, 95.75);
     		addSequential(new DriveToPointGroup(robot, toPoint, true));
@@ -82,6 +82,6 @@ public class CenterSwitchWithCubeGroup extends CommandGroup {
     		addSequential(new DriveToPointGroup(robot, toPoint));
     	}
 		//Eject cube
-    	addSequential(new EjectIntakeCubeGroup(robot));
+    	addSequential(new EjectCubeFromIntakeGroup(robot));
     }
 }

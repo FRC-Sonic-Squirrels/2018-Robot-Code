@@ -30,8 +30,23 @@ public class RightOppositeScaleGroup extends CommandGroup {
     	
     	//In open space
     	Point2D.Double toPoint = new Double(277.65, 232.99);
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	addSequential(new DriveToPointGroup(robot, toPoint));
     	//Across the field
-    	addSequential(new LeftScaleGroup(robot));
+    	toPoint.setLocation(78.43, 236.81);
+    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	addSequential(new MoveElevatorToPositionCommand(robot, robot.ELEVATOR_TOP_VALUE));
+    	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_TOP_VALUE));
+    	//At scale
+    	toPoint.setLocation(78.43, 278.04);
+    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	//Place cube
+    	addSequential(new ManipulateCPPSTTM(robot, true));
+    	addSequential(new WaitCommand(0.25));
+    	addSequential(new ManipulateCPPSTTM(robot, false));
+    	//Back up
+    	toPoint.setLocation(78.43, 236.81);
+    	addSequential(new DriveToPointGroup(robot, toPoint, true));
+    	addSequential(new MoveElevatorToPositionCommand(robot, robot.ELEVATOR_BOTTOM_VALUE));
+    	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_BOTTOM_VALUE));
     }
 }

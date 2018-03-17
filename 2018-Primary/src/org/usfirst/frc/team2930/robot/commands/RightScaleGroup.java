@@ -30,12 +30,12 @@ public class RightScaleGroup extends CommandGroup {
     	
     	//In open space
     	Point2D.Double toPoint = new Double(277.65, 232.99);
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	addSequential(new DriveToPointGroup(robot, toPoint));
     	addSequential(new MoveElevatorToPositionCommand(robot, robot.ELEVATOR_TOP_VALUE));
     	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_PLACING_VALUE));
     	//At scale ready to be placed
     	toPoint.setLocation(268.80, 284.73);
-    	addSequential(new DriveToPointGroup(robot, toPoint.getX(), toPoint.getY()));
+    	addSequential(new DriveToPointGroup(robot, toPoint));
     	//Place cube
     	addSequential(new ManipulateCPPSTTM(robot, true));
     	addSequential(new WaitCommand(0.25));
