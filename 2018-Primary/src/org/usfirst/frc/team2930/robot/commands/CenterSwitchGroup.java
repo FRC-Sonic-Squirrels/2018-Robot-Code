@@ -29,11 +29,11 @@ public class CenterSwitchGroup extends CommandGroup {
         // arm.
     	
     	//Slightly forward
-    	Point2D.Double toPoint = new Double(167.58, 26.00);
+    	Point2D.Double toPoint = new Double(167.58, 35.00);
     	// Intake is closed
     	// Intake is up
-    	// Move arm to position 22
-    	addSequential(new MoveArmToPositionCommand(robot, 22));
+    	// Move arm to position 11
+    	addSequential(new MoveArmToPositionCommand(robot, 11));
     	addSequential(new DriveToPointGroup(robot, toPoint));
 		// Close grasper
     	addSequential(new ManipulateCPPSTTM(robot, false));
@@ -65,7 +65,7 @@ public class CenterSwitchGroup extends CommandGroup {
     	addSequential(new ManipulateCPPSTTM(robot, true));
     	addSequential(new WaitCommand(0.25));
     	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_BOTTOM_VALUE));
-    	addSequential(new WaitCommand(0.25));
+    	addSequential(new WaitCommand(0.5));
     	//Back up
     	if (robot.gameData.charAt(0) == 'L') {
     		toPoint.setLocation(110.34,  112.88);
@@ -74,28 +74,33 @@ public class CenterSwitchGroup extends CommandGroup {
     		toPoint.setLocation(216.04, 112.88);
     	}
     	addSequential(new DriveToPointGroup(robot, toPoint, true));
+    	addSequential(new WaitCommand(1));
     	//In front of pyramid
-    	toPoint.setLocation(162.67, 57.96);
-    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	toPoint.setLocation(180.00, 65.00);
+    	addSequential(new DriveToPointGroup(robot, toPoint, true));
     	addSequential(new SetIntakeSpeedCommand(robot, 1));
+    	addSequential(new WaitCommand(1));
     	//Literally in front of pyramid
-    	toPoint.setLocation(162.14, 77.44);
+    	toPoint.setLocation(180.00, 101.57);
     	addSequential(new AngleIntakeCommand(robot, false));
     	addSequential(new DriveToPointGroup(robot, toPoint));
+    	addSequential(new WaitCommand(1));
     	//Grab sequence
     	addSequential(new OpenIntakeCommand(robot, false));
-    	addSequential(new WaitCommand(0.25));
+    	addSequential(new WaitCommand(0.5));
     	addSequential(new SetIntakeSpeedCommand(robot, 0));
     	addSequential(new AngleIntakeCommand(robot, true));
+    	addSequential(new WaitCommand(1));
     	//Back up a teensy bit
-    	toPoint.setLocation(162.67, 57.96);
+    	/*toPoint.setLocation(180.00, 65.00);
     	addSequential(new DriveToPointGroup(robot, toPoint, true));
+    	addSequential(new WaitCommand(1));
     	//Turn toward owned scale
     	if (robot.gameData.charAt(0) == 'L') {
     		addSequential(new RotateToAngleCommand(robot, -60));
     	}
     	else {
     		addSequential(new RotateToAngleCommand(robot, 60));
-    	}
+    	}*/
     }
 }

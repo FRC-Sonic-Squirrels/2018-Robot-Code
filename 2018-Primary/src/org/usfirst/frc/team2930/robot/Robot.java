@@ -87,7 +87,7 @@ public class Robot extends TimedRobot {
 	public double armSpeed = 0;
 	
 	public final double ELEVATOR_TOP_VALUE = 30;
-	public final double ELEVATOR_PLACING_VALUE = 10;
+	public final double ELEVATOR_PLACING_VALUE = 20;
 	public final double ELEVATOR_BOTTOM_VALUE = 1;
 	public final double ARM_TOP_VALUE = 110;
 	public final double ARM_PLACING_VALUE = 90;
@@ -209,7 +209,7 @@ public class Robot extends TimedRobot {
 		elevatorPIDOutput = new EncoderBasedPIDOutput(0, 5, 0.5, elevatorEncoderCounterA, elevatorEncoderCounterB);
 		elevatorPID = new PIDController(0.25, 0, 0, 0, elevatorEncoder, elevatorPIDOutput/*, 0.02*/);
 		elevatorPID.setAbsoluteTolerance(0);
-		elevatorPID.setOutputRange(-0.5, 0.5);
+		//elevatorPID.setOutputRange(-0.5, 0.5);
 		armPIDOutput = new EncoderBasedPIDOutput(0, 5, 0.5, armEncoderCounterA, armEncoderCounterB);
 		armPID = new PIDController(0.035, 0.005, 0.01, 0, armEncoder, armPIDOutput/*, 0.02*/);
 		armPID.setAbsoluteTolerance(10);

@@ -28,8 +28,19 @@ public class LeftOppositeScaleGroup extends CommandGroup {
         // a CommandGroup containing them would require both the chassis and the
         // arm.
     	
+    	//Slightly forward
+    	Point2D.Double toPoint = new Double(277.65, 26.00);
+    	// Intake is closed
+    	// Intake is up
+    	// Move arm to position 11
+    	addSequential(new MoveArmToPositionCommand(robot, 11));
+    	addSequential(new DriveToPointGroup(robot, toPoint));
+		// Close grasper
+    	addSequential(new ManipulateCPPSTTM(robot, false));
+    	//Open the intake
+    	addSequential(new OpenIntakeCommand(robot, true));
     	//In open space
-    	Point2D.Double toPoint = new Double(46.96, 232.99);
+    	toPoint = new Double(46.96, 232.99);
     	addSequential(new DriveToPointGroup(robot, toPoint));
     	//Across the field
     	toPoint.setLocation(246.23, 232.99);

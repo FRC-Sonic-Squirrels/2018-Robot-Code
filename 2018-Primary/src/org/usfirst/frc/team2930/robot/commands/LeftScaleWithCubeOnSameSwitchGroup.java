@@ -32,8 +32,8 @@ public class LeftScaleWithCubeOnSameSwitchGroup extends CommandGroup {
     	Point2D.Double toPoint = new Double(46.96, 26.00);
     	// Intake is closed
     	// Intake is up
-    	// Move arm to position 22
-    	addSequential(new MoveArmToPositionCommand(robot, 22));
+    	// Move arm to position 11
+    	addSequential(new MoveArmToPositionCommand(robot, 11));
     	addSequential(new DriveToPointGroup(robot, toPoint));
 		// Close grasper
     	addSequential(new ManipulateCPPSTTM(robot, false));
