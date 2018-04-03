@@ -28,36 +28,37 @@ public class LeftOppositeScaleGroup extends CommandGroup {
         // a CommandGroup containing them would require both the chassis and the
         // arm.
     	
-    	//Slightly forward
-    	Point2D.Double toPoint = new Double(277.65, 26.00);
     	// Intake is closed
     	// Intake is up
     	// Move arm to position 11
     	addSequential(new MoveArmToPositionCommand(robot, 11));
-    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	addSequential(new WaitCommand(0.5));
 		// Close grasper
     	addSequential(new ManipulateCPPSTTM(robot, false));
+    	addSequential(new WaitCommand(0.25));
     	//Open the intake
     	addSequential(new OpenIntakeCommand(robot, true));
     	//In open space
-    	toPoint = new Double(46.96, 232.99);
+    	Point2D.Double toPoint = new Double(46.96, 250.00);
     	addSequential(new DriveToPointGroup(robot, toPoint));
     	//Across the field
-    	toPoint.setLocation(246.23, 232.99);
+    	toPoint.setLocation(246.23, 250.00);
     	addSequential(new DriveToPointGroup(robot, toPoint));
-    	//At scale
-    	toPoint.setLocation(246.23, 278.04);
-    	addSequential(new MoveElevatorToPositionCommand(robot, robot.ELEVATOR_TOP_VALUE));
+    	addSequential(new MoveElevatorToPositionCommand(robot, robot.ELEVATOR_PLACING_VALUE));
     	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_TOP_VALUE));
-    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	addSequential(new WaitCommand(1));
+    	//At scale
+    	toPoint.setLocation(246.23, 300.73);
+    	addSequential(new DriveToPointGroup(robot, toPoint, false, true));
+    	addSequential(new WaitCommand(1.5));
     	//Place cube
     	addSequential(new ManipulateCPPSTTM(robot, true));
-    	addSequential(new WaitCommand(0.25));
-    	addSequential(new ManipulateCPPSTTM(robot, false));
+    	addSequential(new WaitCommand(1));
     	//Back up
-    	toPoint.setLocation(246.23, 278.04);
-    	addSequential(new DriveToPointGroup(robot, toPoint, true));
+    	toPoint.setLocation(246.23, 250.00);
+    	addSequential(new DriveToPointGroup(robot, toPoint, true, true));
     	addSequential(new MoveElevatorToPositionCommand(robot, robot.ELEVATOR_BOTTOM_VALUE));
     	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_BOTTOM_VALUE));
+    	addSequential(new WaitCommand(1));
     }
 }

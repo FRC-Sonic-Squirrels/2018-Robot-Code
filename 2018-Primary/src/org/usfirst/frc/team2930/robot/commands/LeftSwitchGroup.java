@@ -29,7 +29,7 @@ public class LeftSwitchGroup extends CommandGroup {
         // arm.
     	
     	//Slightly forward
-    	Point2D.Double toPoint = new Double(46.96, 26.00);
+    	Point2D.Double toPoint = new Double(46.96, 35.00);
     	// Intake is closed
     	// Intake is up
     	// Move arm to position 11
@@ -37,6 +37,9 @@ public class LeftSwitchGroup extends CommandGroup {
     	addSequential(new DriveToPointGroup(robot, toPoint));
 		// Close grasper
     	addSequential(new ManipulateCPPSTTM(robot, false));
+    	//Open the intake
+    	addSequential(new OpenIntakeCommand(robot, true));
+    	//In open space
     	toPoint = new Double(46.96, 166.89);
     	addSequential(new DriveToPointGroup(robot, toPoint));
     	// Move arm to ARM_PLACING

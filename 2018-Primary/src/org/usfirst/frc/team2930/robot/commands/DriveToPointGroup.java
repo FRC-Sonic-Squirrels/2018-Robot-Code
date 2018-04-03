@@ -13,7 +13,6 @@ public class DriveToPointGroup extends CommandGroup {
 	public DriveToPointGroup(Robot robot, Point2D.Double toPoint) {
 		this(robot, toPoint, false, false);
 	}
-	
 	public DriveToPointGroup(Robot robot, Point2D.Double toPoint, boolean isReversed) {
 		this(robot, toPoint, isReversed, false);
 	}

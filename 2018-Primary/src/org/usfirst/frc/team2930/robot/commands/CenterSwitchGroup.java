@@ -44,23 +44,24 @@ public class CenterSwitchGroup extends CommandGroup {
     		// Open intake
         	addSequential(new OpenIntakeCommand(robot, true));
         	// Move arm to ARM_PLACING
-        	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_PLACING_VALUE));
+        	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_SWITCH_VALUE));
         	//Switch head-on
-    		toPoint.setLocation(110.34, 125);
+    		toPoint.setLocation(110.34, 128);
     		addSequential(new DriveToPointGroup(robot, toPoint));
     	}
     	else {
     		//Switch angled
-        	toPoint.setLocation(216.04, 112.88);
+        	toPoint.setLocation(220.04, 112.88);
         	addSequential(new DriveToPointGroup(robot, toPoint));
         	// Open intake
         	addSequential(new OpenIntakeCommand(robot, true));
         	// Move arm to ARM_PLACING
-        	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_PLACING_VALUE));
+        	addSequential(new MoveArmToPositionCommand(robot, robot.ARM_SWITCH_VALUE));
         	//Switch head-on
-        	toPoint.setLocation(216.04, 125);
+        	toPoint.setLocation(220.04, 128);
         	addSequential(new DriveToPointGroup(robot, toPoint));
     	}
+    	addSequential(new WaitCommand(1));
     	//Open grasper
     	addSequential(new ManipulateCPPSTTM(robot, true));
     	addSequential(new WaitCommand(0.25));
@@ -71,19 +72,19 @@ public class CenterSwitchGroup extends CommandGroup {
     		toPoint.setLocation(110.34,  112.88);
     	}
     	else {
-    		toPoint.setLocation(216.04, 112.88);
+    		toPoint.setLocation(220.04, 112.88);
     	}
     	addSequential(new DriveToPointGroup(robot, toPoint, true));
     	addSequential(new WaitCommand(1));
     	//In front of pyramid
-    	toPoint.setLocation(180.00, 65.00);
-    	addSequential(new DriveToPointGroup(robot, toPoint, true));
+    	toPoint.setLocation(167.00, 65.00);
+    	addSequential(new DriveToPointGroup(robot, toPoint, true, true));
     	addSequential(new SetIntakeSpeedCommand(robot, 1));
     	addSequential(new WaitCommand(1));
     	//Literally in front of pyramid
-    	toPoint.setLocation(180.00, 101.57);
+    	toPoint.setLocation(167.00, 108.00);
     	addSequential(new AngleIntakeCommand(robot, false));
-    	addSequential(new DriveToPointGroup(robot, toPoint));
+    	addSequential(new DriveToPointGroup(robot, toPoint, false, true));
     	addSequential(new WaitCommand(1));
     	//Grab sequence
     	addSequential(new OpenIntakeCommand(robot, false));

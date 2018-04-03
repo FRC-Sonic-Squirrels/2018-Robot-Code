@@ -89,9 +89,9 @@ public class Robot extends TimedRobot {
 	public final double ELEVATOR_TOP_VALUE = 30;
 	public final double ELEVATOR_PLACING_VALUE = 20;
 	public final double ELEVATOR_BOTTOM_VALUE = 1;
-	public final double ARM_TOP_VALUE = 110;
+	public final double ARM_TOP_VALUE = 105;
 	public final double ARM_PLACING_VALUE = 90;
-	public final double ARM_SWITCH_VALUE = 55;
+	public final double ARM_SWITCH_VALUE = 60;
 	public final double ARM_BOTTOM_VALUE = 0;
 	int grabPhase = 3;
 	int armPhase = 2;
@@ -197,7 +197,7 @@ public class Robot extends TimedRobot {
 		drivePIDOutput = new EncoderBasedPIDOutput(0, 5, 0.5, rightEncoderCounterA, rightEncoderCounterB, leftEncoderCounterA, leftEncoderCounterB);
 		encoderAverageRateFilter = LinearDigitalFilter.movingAverage(encoderAverageRate, 30);
 		drivePID = new PIDController(0.3, 0, 0.2, encoderAverage, drivePIDOutput/*, 0.02*/);
-		drivePID.setAbsoluteTolerance(6.0);
+		drivePID.setAbsoluteTolerance(3.0);
 		//drivePID.setOutputRange(-0.9, 0.9);
 		gyroFilter = LinearDigitalFilter.movingAverage(gyro, 50);
 		rotatePIDOutput = new SimplePIDOutput(0, 1);
@@ -210,8 +210,8 @@ public class Robot extends TimedRobot {
 		elevatorPID = new PIDController(0.25, 0, 0, 0, elevatorEncoder, elevatorPIDOutput/*, 0.02*/);
 		elevatorPID.setAbsoluteTolerance(0);
 		//elevatorPID.setOutputRange(-0.5, 0.5);
-		armPIDOutput = new EncoderBasedPIDOutput(0, 5, 0.5, armEncoderCounterA, armEncoderCounterB);
-		armPID = new PIDController(0.035, 0.005, 0.01, 0, armEncoder, armPIDOutput/*, 0.02*/);
+		armPIDOutput = new EncoderBasedPIDOutput(0, 20, 0.5, armEncoderCounterA, armEncoderCounterB);
+		armPID = new PIDController(0.025, 0.005, 0.005, 0, armEncoder, armPIDOutput/*, 0.02*/);
 		armPID.setAbsoluteTolerance(10);
 		armPID.setOutputRange(-0.5, 0.75);
 		@SuppressWarnings("unused")
@@ -509,7 +509,7 @@ public class Robot extends TimedRobot {
 		}
 		else if (operateController.getPOV() == 270) {
 			armPID.enable();
-			armPID.setSetpoint(ARM_PLACING_VALUE);
+			armPID.setSetpoint(ARM_SWITCH_VALUE);
 		}
 
 		if (armPID.isEnabled()) {
@@ -560,11 +560,7 @@ public class Robot extends TimedRobot {
 			}
 			else if (grabPhase == 3) {
 				if (armEncoder.getDistance() >= 6) {
-					if (armEncoder.getDistance() <= 48) {
-						intakeOpener.set(DoubleSolenoid.Value.kForward);
-					} else {
-						intakeOpener.set(DoubleSolenoid.Value.kReverse);
-					}
+					intakeOpener.set(DoubleSolenoid.Value.kForward);
 					
 					if (operateController.getBButton()) {
 						copyrightedPatentPendingSquirrelThumbTM.set(DoubleSolenoid.Value.kReverse);
