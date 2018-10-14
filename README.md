@@ -21,3 +21,5 @@ NYSSA: That's an example of recursion, when procedures fold back on themselves. 
 TEGAN: If. My Dad used to say that if was the most powerful word in the English language.
 NYSSA: Recursion’s a powerful mathematical concept, but I don't see how it can help us now.
 TEGAN: If. I F! Stands for index file!
+
+  
