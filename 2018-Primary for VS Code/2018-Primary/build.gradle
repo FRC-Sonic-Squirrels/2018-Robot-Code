@@ -52,14 +52,3 @@ compileJava {
 wrapper {
     gradleVersion = '4.9'
 }
-plugins {
-    id "java"
-    id "jaci.openrio.gradle.GradleRIO" version "2018.03.06"// Should point to the at https://login.gradle.org/plugin/jaci.openrio.gradle.GradleRIO
-    id "com.snobot.simulator.plugin.SnobotSimulatorPlugin" version "2018-1.0.0" // Should point to the latest version at https://login.gradle.org/plugin/com.snobot.simulator.plugin.SnobotSimulatorPlugin
-}
-
-dependencies {
-
-    testCompile snobotSimCompile()
-    testCompile snobotSimJavaCompile()
-}
