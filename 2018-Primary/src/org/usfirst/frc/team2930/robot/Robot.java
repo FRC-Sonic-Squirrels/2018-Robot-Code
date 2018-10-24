@@ -305,10 +305,6 @@ public class Robot extends TimedRobot {
 				else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'R' && gameData.charAt(0) == 'R' && doLongPaths.getSelected()) {
 					m_autonomousCommand = new LeftOppositeScaleWithCubeOnOppositeSwitchGroup(this);
 				}
-				//Basically don't do scale auton
-				else if (gameData.charAt(0) == 'L') {
-					m_autonomousCommand = new LeftSwitchGroup(this);
-				}
 				//If our luck is trash
 				else {
 					m_autonomousCommand = new DriveToPointGroup(this, new Point2D.Double(46.96, 166.89));
@@ -335,10 +331,6 @@ public class Robot extends TimedRobot {
 				//Basically don't do scale auton
 				else if (doScaleAuton.getSelected() && gameData.charAt(1) == 'L' && doLongPaths.getSelected()) {
 					m_autonomousCommand = new RightOppositeScaleGroup(this);
-				}
-				//If our luck is trash
-				else if (gameData.charAt(0) == 'R') {
-					m_autonomousCommand = new RightSwitchGroup(this);
 				}
 				else {
 					m_autonomousCommand = new DriveToPointGroup(this, new Point2D.Double(277.65, 166.89));
@@ -476,7 +468,7 @@ public class Robot extends TimedRobot {
 			elevatorSpeed = 0;
 		}
 		
-		if (elevatorEncoder.getDistance() >= ELEVATOR_TOP_VALUE && elevatorSpeed < 0) {
+		if (elevatorEncoder.getDistance() >= 32 && elevatorSpeed < 0) {
 			elevatorSpeed = 0;
 		}
 		
